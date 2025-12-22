@@ -86,12 +86,20 @@ fun TasksScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            AppIcons.TaskAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "✅ Tasks",
+                            text = "Tasks",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
+                    }
                         Text(
                             text = "$completedCount of $totalCount completed",
                             style = MaterialTheme.typography.bodySmall,
@@ -164,10 +172,10 @@ fun TasksScreen(
                         },
                         description = when (selectedFilter) {
                             TaskFilter.ALL -> "Add your first task to get started"
-                            TaskFilter.TODAY -> "Enjoy your free day! 🎉"
+                            TaskFilter.TODAY -> "Enjoy your free day!"
                             TaskFilter.UPCOMING -> "Great job staying on top of things"
                             TaskFilter.COMPLETED -> "Complete some tasks to see them here"
-                            TaskFilter.OVERDUE -> "You're all caught up! 👍"
+                            TaskFilter.OVERDUE -> "You're all caught up!"
                         },
                         icon = when (selectedFilter) {
                             TaskFilter.COMPLETED -> Icons.Outlined.CheckCircle
@@ -470,9 +478,11 @@ fun TaskItemExpanded(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = linkedGoal.category.emoji,
-                                style = MaterialTheme.typography.labelSmall
+                            Icon(
+                                imageVector = linkedGoal.category.getIcon(),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = Color(linkedGoal.color)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
@@ -665,7 +675,15 @@ fun TaskEditorSheet(
                     FilterChip(
                         selected = linkedGoalId == goal.id,
                         onClick = { linkedGoalId = goal.id },
-                        label = { Text("${goal.category.emoji} ${goal.title}") },
+                        label = { Text(goal.title) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = goal.category.getIcon(),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = Color(goal.color)
+                            )
+                        },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Color(goal.color).copy(alpha = 0.2f)
                         )

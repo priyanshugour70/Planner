@@ -6,16 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,11 +36,22 @@ fun CalendarScreen(
     modifier: Modifier = Modifier
 ) {
     val selectedDate by viewModel.selectedDate.collectAsState()
+    
+    // We collect individual lists to update the monthly dots indicators
     val events by viewModel.events.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
+    val reminders by viewModel.reminders.collectAsState()
     
     var currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
     var showAddEventDialog by remember { mutableStateOf(false) }
+    
+    // Force refresh when these change
+    val itemsTrigger = events.size + tasks.size + reminders.size
+    
+    // Get unified items for selected date
+    val calendarItems = remember(selectedDate, itemsTrigger) {
+        viewModel.getAllItemsForDate(selectedDate)
+    }
     
     val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
     
@@ -53,11 +59,20 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "📅 Calendar 2026",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            AppIcons.Calendar,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Unified Calendar",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
@@ -67,7 +82,7 @@ fun CalendarScreen(
         floatingActionButton = {
             GradientFAB(
                 onClick = { showAddEventDialog = true },
-                icon = Icons.Filled.Add
+                icon = AppIcons.Add
             )
         },
         modifier = modifier
@@ -107,6 +122,7 @@ fun CalendarScreen(
                     selectedDate = selectedDate,
                     events = events,
                     tasks = tasks,
+                    reminders = reminders,
                     onDateSelected = { viewModel.setSelectedDate(it) },
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -118,67 +134,32 @@ fun CalendarScreen(
             item {
                 SelectedDateInfo(
                     selectedDate = selectedDate,
+                    count = calendarItems.size,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
             
             item { Spacer(modifier = Modifier.height(16.dp)) }
             
-            // Events and tasks for selected date
-            val selectedDateEvents = viewModel.getEventsForDate(selectedDate)
-            val selectedDateTasks = viewModel.getTasksForDate(selectedDate)
-            
-            if (selectedDateEvents.isEmpty() && selectedDateTasks.isEmpty()) {
+            // Unified items list
+            if (calendarItems.isEmpty()) {
                 item {
                     EmptyState(
-                        title = "No events",
-                        description = "No events or tasks scheduled for this day",
-                        icon = Icons.Outlined.EventAvailable,
+                        title = "Nothing Scheduled",
+                        description = "No tasks, events, or reminders for this day",
+                        icon = AppIcons.Calendar,
                         actionText = "Add Event",
                         onActionClick = { showAddEventDialog = true },
                         modifier = Modifier.padding(16.dp)
                     )
                 }
             } else {
-                // Events
-                if (selectedDateEvents.isNotEmpty()) {
-                    item {
-                        SectionHeader(
-                            title = "📌 Events",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    items(selectedDateEvents, key = { it.id }) { event ->
-                        EventCard(
-                            event = event,
-                            onDelete = { viewModel.deleteEvent(event.id) },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-                    }
-                    
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
-                }
-                
-                // Tasks
-                if (selectedDateTasks.isNotEmpty()) {
-                    item {
-                        SectionHeader(
-                            title = "✅ Tasks",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    items(selectedDateTasks, key = { it.id }) { task ->
-                        TaskItem(
-                            task = task,
-                            onToggle = { viewModel.toggleTaskCompletion(task.id) },
-                            onClick = { },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-                    }
+                items(calendarItems, key = { it.id }) { item ->
+                    CalendarItemCard(
+                        item = item,
+                        viewModel = viewModel,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
                 }
             }
         }
@@ -214,7 +195,7 @@ fun MonthNavigator(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onPreviousMonth) {
-            Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month")
+            Icon(AppIcons.ChevronLeft, contentDescription = "Previous month")
         }
         
         Column(
@@ -231,7 +212,7 @@ fun MonthNavigator(
         }
         
         IconButton(onClick = onNextMonth) {
-            Icon(Icons.Filled.ChevronRight, contentDescription = "Next month")
+            Icon(AppIcons.ChevronRight, contentDescription = "Next month")
         }
     }
 }
@@ -242,6 +223,7 @@ fun CalendarGrid(
     selectedDate: Long,
     events: List<CalendarEvent>,
     tasks: List<Task>,
+    reminders: List<Reminder>,
     onDateSelected: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -301,15 +283,18 @@ fun CalendarGrid(
                         
                         val isSelected = isSameDay(dayTimestamp, selectedDate)
                         val isToday = isCurrentMonth && day == today.get(Calendar.DAY_OF_MONTH)
-                        val hasEvents = events.any { isSameDay(it.date, dayTimestamp) }
-                        val hasTasks = tasks.any { it.dueDate?.let { d -> isSameDay(d, dayTimestamp) } ?: false }
+                        
+                        val activeEvents = events.any { isSameDay(it.date, dayTimestamp) }
+                        val activeTasks = tasks.any { it.dueDate?.let { d -> isSameDay(d, dayTimestamp) } ?: false }
+                        val activeReminders = reminders.any { isSameDay(it.reminderTime, dayTimestamp) }
                         
                         CalendarDay(
                             day = day,
                             isSelected = isSelected,
                             isToday = isToday,
-                            hasEvents = hasEvents,
-                            hasTasks = hasTasks,
+                            hasEvents = activeEvents,
+                            hasTasks = activeTasks,
+                            hasReminders = activeReminders,
                             onClick = { onDateSelected(dayTimestamp) },
                             modifier = Modifier.weight(1f)
                         )
@@ -318,6 +303,7 @@ fun CalendarGrid(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -329,6 +315,7 @@ fun CalendarDay(
     isToday: Boolean,
     hasEvents: Boolean,
     hasTasks: Boolean,
+    hasReminders: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -353,7 +340,8 @@ fun CalendarDay(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = day.toString(),
@@ -366,7 +354,8 @@ fun CalendarDay(
             )
             
             // Indicator dots
-            if (hasEvents || hasTasks) {
+            if (hasEvents || hasTasks || hasReminders) {
+                Spacer(modifier = Modifier.height(2.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
@@ -375,10 +364,7 @@ fun CalendarDay(
                             modifier = Modifier
                                 .size(4.dp)
                                 .clip(CircleShape)
-                                .background(
-                                    if (isSelected) Color.White
-                                    else MaterialTheme.colorScheme.secondary
-                                )
+                                .background(if (isSelected) Color.White else Color(0xFF2196F3))
                         )
                     }
                     if (hasTasks) {
@@ -386,10 +372,15 @@ fun CalendarDay(
                             modifier = Modifier
                                 .size(4.dp)
                                 .clip(CircleShape)
-                                .background(
-                                    if (isSelected) Color.White.copy(alpha = 0.7f)
-                                    else MaterialTheme.colorScheme.tertiary
-                                )
+                                .background(if (isSelected) Color.White else Color(0xFF4CAF50))
+                        )
+                    }
+                    if (hasReminders) {
+                        Box(
+                            modifier = Modifier
+                                .size(4.dp)
+                                .clip(CircleShape)
+                                .background(if (isSelected) Color.White else Color(0xFFFF9800))
                         )
                     }
                 }
@@ -401,6 +392,7 @@ fun CalendarDay(
 @Composable
 fun SelectedDateInfo(
     selectedDate: Long,
+    count: Int,
     modifier: Modifier = Modifier
 ) {
     val dateFormat = remember { SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()) }
@@ -428,72 +420,148 @@ fun SelectedDateInfo(
             }
         }
         
-        if (isToday) {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = "Today",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "$count Items",
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
 
 @Composable
-fun EventCard(
-    event: CalendarEvent,
-    onDelete: () -> Unit,
+fun CalendarItemCard(
+    item: CalendarItem,
+    viewModel: Goal2026ViewModel,
     modifier: Modifier = Modifier
 ) {
+    val icon = when(item.type) {
+        CalendarItemType.TASK -> AppIcons.Tasks
+        CalendarItemType.EVENT -> AppIcons.Event
+        CalendarItemType.REMINDER -> AppIcons.Reminders
+        CalendarItemType.NOTE -> AppIcons.Notes
+        CalendarItemType.GOAL_MILESTONE -> AppIcons.Milestone
+    }
+    
+    val color = Color(item.color)
+    val isTaskOrReminder = item.type == CalendarItemType.TASK || item.type == CalendarItemType.REMINDER
+    
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(event.color).copy(alpha = 0.15f)
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Priority Indicator
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(40.dp)
+                    .height(48.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Color(event.color))
+                    .background(color)
             )
             
             Spacer(modifier = Modifier.width(12.dp))
             
+            // Checkbox for tasks/reminders
+            if (isTaskOrReminder) {
+                IconButton(
+                    onClick = {
+                        if (item.type == CalendarItemType.TASK) {
+                            viewModel.toggleTaskCompletion(item.id)
+                        } else if (item.type == CalendarItemType.REMINDER) {
+                            viewModel.toggleReminderEnabled(item.id) // Or some other completion logic
+                        }
+                    },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = if (item.isCompleted) AppIcons.CheckCircle else AppIcons.RadioButtonUnchecked,
+                        contentDescription = null,
+                        tint = if (item.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(color.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = event.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textDecoration = if (isTaskOrReminder && item.isCompleted) 
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                    color = if (isTaskOrReminder && item.isCompleted)
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
                 )
-                if (event.description.isNotEmpty()) {
+                
+                if (item.description.isNotEmpty()) {
                     Text(
-                        text = event.description,
+                        text = item.description,
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+                
+                // Priority Badge
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = AppIcons.Flag,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = item.priority.level.let { 
+                            if (it <= 3) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurfaceVariant 
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = item.priority.displayName + " Priority",
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = "Delete event",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            // Delete Action
+            if (item.type == CalendarItemType.EVENT) {
+                IconButton(onClick = { viewModel.deleteEvent(item.id) }) {
+                    Icon(
+                        AppIcons.DeleteOutlined,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -531,7 +599,8 @@ fun AddEventDialog(
                     onValueChange = { title = it },
                     label = { Text("Event Title") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    leadingIcon = { Icon(AppIcons.Event, null) }
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -541,7 +610,8 @@ fun AddEventDialog(
                     onValueChange = { description = it },
                     label = { Text("Description (optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
+                    maxLines = 3,
+                    leadingIcon = { Icon(AppIcons.Description, null) }
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -556,7 +626,7 @@ fun AddEventDialog(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    colors.forEach { color ->
+                    colors.take(5).forEach { color ->
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
@@ -564,7 +634,7 @@ fun AddEventDialog(
                                 .background(Color(color))
                                 .then(
                                     if (selectedColor == color) {
-                                        Modifier.border(3.dp, Color.White, CircleShape)
+                                        Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                                     } else Modifier
                                 )
                                 .clickable { selectedColor = color }

@@ -3,7 +3,7 @@ package com.lssgoo.goal2026.data.model
 import java.util.UUID
 
 /**
- * Represents a task in the app
+ * Represents a task in the app with full linking and history tracking
  */
 data class Task(
     val id: String = UUID.randomUUID().toString(),
@@ -11,14 +11,43 @@ data class Task(
     val description: String = "",
     val isCompleted: Boolean = false,
     val priority: TaskPriority = TaskPriority.MEDIUM,
+    val itemPriority: ItemPriority = ItemPriority.P5, // 11-level priority
     val dueDate: Long? = null,
     val linkedGoalId: String? = null,
+    val linkedNoteId: String? = null,
+    val linkedReminderId: String? = null,
     val category: String = "",
     val repeatType: RepeatType = RepeatType.NONE,
     val reminder: Long? = null,
+    val reminderEnabled: Boolean = true,
+    val notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+    val subtasks: List<Subtask> = emptyList(),
+    val updateHistory: List<TaskUpdateRecord> = emptyList(),
     val completedAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
+)
+
+/**
+ * Subtask for breaking down tasks
+ */
+data class Subtask(
+    val id: String = UUID.randomUUID().toString(),
+    val title: String,
+    val isCompleted: Boolean = false,
+    val completedAt: Long? = null
+)
+
+/**
+ * Record of task updates
+ */
+data class TaskUpdateRecord(
+    val id: String = UUID.randomUUID().toString(),
+    val timestamp: Long = System.currentTimeMillis(),
+    val fieldChanged: String,
+    val oldValue: String = "",
+    val newValue: String = "",
+    val summary: String = ""
 )
 
 enum class TaskPriority(val displayName: String, val color: Long) {
@@ -37,7 +66,7 @@ enum class RepeatType(val displayName: String) {
 }
 
 /**
- * Represents a calendar event
+ * Represents a calendar event with full linking
  */
 data class CalendarEvent(
     val id: String = UUID.randomUUID().toString(),
@@ -47,11 +76,27 @@ data class CalendarEvent(
     val startTime: Long? = null,
     val endTime: Long? = null,
     val color: Long = 0xFF2196F3,
+    val priority: ItemPriority = ItemPriority.P5,
     val linkedGoalId: String? = null,
     val linkedTaskId: String? = null,
+    val linkedNoteId: String? = null,
+    val linkedReminderId: String? = null,
     val isAllDay: Boolean = true,
     val reminder: Long? = null,
+    val reminderEnabled: Boolean = true,
+    val notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+    val updateHistory: List<EventUpdateRecord> = emptyList(),
     val createdAt: Long = System.currentTimeMillis()
+)
+
+/**
+ * Record of event updates
+ */
+data class EventUpdateRecord(
+    val id: String = UUID.randomUUID().toString(),
+    val timestamp: Long = System.currentTimeMillis(),
+    val fieldChanged: String,
+    val summary: String = ""
 )
 
 /**

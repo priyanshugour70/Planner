@@ -135,10 +135,14 @@ fun CategoryFilterChips(
                 onClick = { 
                     onCategorySelected(if (selectedCategory == category) null else category) 
                 },
-                label = { Text("${category.emoji} ${category.displayName}") },
-                leadingIcon = if (selectedCategory == category) {
-                    { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                } else null
+                label = { Text(category.displayName) },
+                leadingIcon = {
+                    if (selectedCategory == category) {
+                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    } else {
+                        Icon(category.getIcon(), contentDescription = null, modifier = Modifier.size(18.dp))
+                    }
+                }
             )
         }
     }
@@ -182,7 +186,7 @@ fun OverallProgressCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Keep going! You're doing great 🚀",
+                        text = "Every step counts towards your 2026 success",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.8f)
                     )
@@ -200,9 +204,11 @@ fun OverallProgressCard(
                         strokeWidth = 8.dp,
                         trackColor = Color.White.copy(alpha = 0.2f)
                     )
-                    Text(
-                        text = "🎯",
-                        fontSize = 28.sp
+                    Icon(
+                        imageVector = AppIcons.Target,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
@@ -324,13 +330,24 @@ fun GoalDetailHeader(
             color = Color(goal.color).copy(alpha = 0.15f),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text(
-                text = "${goal.category.emoji} ${goal.category.displayName}",
+            Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                color = Color(goal.color),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = goal.category.getIcon(),
+                    contentDescription = null,
+                    tint = Color(goal.color),
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = goal.category.displayName,
+                    color = Color(goal.color),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))

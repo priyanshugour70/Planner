@@ -27,6 +27,9 @@ class LocalStorageManager(context: Context) {
         private const val KEY_SETTINGS = "settings"
         private const val KEY_FIRST_LAUNCH = "first_launch"
         private const val KEY_LAST_SYNC = "last_sync"
+        private const val KEY_USER_PROFILE = "user_profile"
+        private const val KEY_REMINDERS = "reminders"
+        private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
     }
     
     // ======================== GOALS ========================
@@ -233,6 +236,80 @@ class LocalStorageManager(context: Context) {
             gson.fromJson(json, AppSettings::class.java)
         } catch (e: Exception) {
             AppSettings()
+        }
+    }
+    
+    // ======================== USER PROFILE ========================
+    
+    fun saveUserProfile(profile: UserProfile) {
+        val json = gson.toJson(profile)
+        prefs.edit().putString(KEY_USER_PROFILE, json).apply()
+    }
+    
+    fun getUserProfile(): UserProfile? {
+        val json = prefs.getString(KEY_USER_PROFILE, null) ?: return null
+        return try {
+            gson.fromJson(json, UserProfile::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    fun isOnboardingComplete(): Boolean {
+        return prefs.getBoolean(KEY_ONBOARDING_COMPLETE, false)
+    }
+    
+    fun setOnboardingComplete() {
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETE, true).apply()
+    }
+    
+    // ======================== REMINDERS ========================
+    
+    fun saveReminders(reminders: List<Reminder>) {
+        val json = gson.toJson(reminders)
+        prefs.edit().putString(KEY_REMINDERS, json).apply()
+    }
+    
+    fun getReminders(): List<Reminder> {
+        val json = prefs.getString(KEY_REMINDERS, null) ?: return emptyList()
+        val type = object : TypeToken<List<Reminder>>() {}.type
+        return try {
+            gson.fromJson(json, type)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    fun addReminder(reminder: Reminder) {
+        val reminders = getReminders().toMutableList()
+        reminders.add(0, reminder)
+        saveReminders(reminders)
+    }
+    
+    fun updateReminder(reminder: Reminder) {
+        val reminders = getReminders().toMutableList()
+        val index = reminders.indexOfFirst { it.id == reminder.id }
+        if (index != -1) {
+            reminders[index] = reminder.copy(updatedAt = System.currentTimeMillis())
+            saveReminders(reminders)
+        }
+    }
+    
+    fun deleteReminder(reminderId: String) {
+        val reminders = getReminders().filter { it.id != reminderId }
+        saveReminders(reminders)
+    }
+    
+    fun toggleReminderEnabled(reminderId: String) {
+        val reminders = getReminders().toMutableList()
+        val index = reminders.indexOfFirst { it.id == reminderId }
+        if (index != -1) {
+            val reminder = reminders[index]
+            reminders[index] = reminder.copy(
+                isEnabled = !reminder.isEnabled,
+                updatedAt = System.currentTimeMillis()
+            )
+            saveReminders(reminders)
         }
     }
     

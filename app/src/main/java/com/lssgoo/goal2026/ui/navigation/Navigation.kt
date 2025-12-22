@@ -17,8 +17,11 @@ object Routes {
     const val NOTE_DETAIL = "note/{noteId}"
     const val NOTE_CREATE = "note/create"
     const val TASKS = "tasks"
+    const val REMINDERS = "reminders"
     const val SETTINGS = "settings"
     const val BACKUP = "backup"
+    const val ONBOARDING = "onboarding"
+    const val PROFILE = "profile"
     
     fun goalDetail(goalId: String) = "goal/$goalId"
     fun noteDetail(noteId: String) = "note/$noteId"
@@ -26,17 +29,19 @@ object Routes {
 
 /**
  * Bottom navigation destinations
+ * Uses Material Icons as the primary visual element
+ * Emoji field kept for backward compatibility but icons are preferred
  */
 enum class BottomNavDestination(
     val route: String,
     val label: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val emoji: String
+    val emoji: String = "" // Deprecated: use icons instead
 ) {
     DASHBOARD(
         route = Routes.DASHBOARD,
-        label = "Dashboard",
+        label = "Home",
         selectedIcon = Icons.Filled.Dashboard,
         unselectedIcon = Icons.Outlined.Dashboard,
         emoji = "🏠"
@@ -70,3 +75,4 @@ enum class BottomNavDestination(
         emoji = "✅"
     )
 }
+

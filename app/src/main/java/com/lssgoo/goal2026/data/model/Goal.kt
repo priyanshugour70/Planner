@@ -26,16 +26,16 @@ data class Milestone(
     val completedAt: Long? = null
 )
 
-enum class GoalCategory(val displayName: String, val emoji: String) {
-    HEALTH("Health & Fitness", "💪"),
-    CAREER("Career", "💼"),
-    LEARNING("Learning", "📚"),
-    COMMUNICATION("Communication", "🗣️"),
-    LIFESTYLE("Lifestyle", "🌅"),
-    DISCIPLINE("Discipline", "⏰"),
-    FINANCE("Finance", "💰"),
-    STARTUP("Startup", "🚀"),
-    MINDFULNESS("Mindfulness", "🧘")
+enum class GoalCategory(val displayName: String, val emoji: String, val iconName: String) {
+    HEALTH("Health & Fitness", "💪", "FitnessCenter"),
+    CAREER("Career", "💼", "Work"),
+    LEARNING("Learning", "📚", "MenuBook"),
+    COMMUNICATION("Communication", "🗣️", "RecordVoiceOver"),
+    LIFESTYLE("Lifestyle", "🌅", "WbSunny"),
+    DISCIPLINE("Discipline", "⏰", "Schedule"),
+    FINANCE("Finance", "💰", "Savings"),
+    STARTUP("Startup", "🚀", "RocketLaunch"),
+    MINDFULNESS("Mindfulness", "🧘", "SelfImprovement")
 }
 
 /**

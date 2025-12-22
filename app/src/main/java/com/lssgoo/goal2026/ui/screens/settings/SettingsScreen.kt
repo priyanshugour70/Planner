@@ -78,11 +78,20 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "⚙️ Settings",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            AppIcons.Settings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Settings",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -106,14 +115,17 @@ fun SettingsScreen(
             // Profile card
             item {
                 ProfileCard(
-                    userName = settings.userName.ifBlank { "Goal Achiever" },
+                    userProfile = userProfile,
                     stats = stats
                 )
             }
             
             // Data Management Section
             item {
-                SettingsSection(title = "📦 Data Management") {
+                SettingsSection(
+                    title = "Data Management",
+                    icon = AppIcons.SettingsBackupRestore
+                ) {
                     SettingsItem(
                         icon = Icons.Outlined.CloudUpload,
                         title = "Export Backup",
@@ -159,7 +171,10 @@ fun SettingsScreen(
             
             // App Info Section
             item {
-                SettingsSection(title = "ℹ️ About") {
+                SettingsSection(
+                    title = "About",
+                    icon = AppIcons.Info
+                ) {
                     SettingsItem(
                         icon = Icons.Outlined.Info,
                         title = "App Version",
@@ -182,7 +197,10 @@ fun SettingsScreen(
             
             // Quick Stats
             item {
-                SettingsSection(title = "📊 Statistics") {
+                SettingsSection(
+                    title = "Statistics",
+                    icon = AppIcons.Assessment
+                ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -320,10 +338,11 @@ fun SettingsScreen(
 
 @Composable
 fun ProfileCard(
-    userName: String,
+    userProfile: com.lssgoo.goal2026.data.model.UserProfile?,
     stats: DashboardStats,
     modifier: Modifier = Modifier
 ) {
+    val userName = userProfile?.firstName ?: "Goal Achiever"
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -365,8 +384,7 @@ fun ProfileCard(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Text(
-                            text = "2026 Goal Crusher 🚀",
+                            text = userProfile?.occupation ?: "2026 Goal Crusher",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f)
                         )
@@ -385,7 +403,7 @@ fun ProfileCard(
                     )
                     ProfileStat(
                         value = "${stats.currentStreak}",
-                        label = "Streak 🔥"
+                        label = "Streak"
                     )
                     ProfileStat(
                         value = "${stats.completedMilestones}",
@@ -424,6 +442,7 @@ fun ProfileStat(
 @Composable
 fun SettingsSection(
     title: String,
+    icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
@@ -434,12 +453,25 @@ fun SettingsSection(
         )
     ) {
         Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(16.dp)
-            )
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             content()
         }
     }
@@ -534,28 +566,47 @@ fun TipsCard(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            Text(
-                text = "💡 Pro Tips",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    AppIcons.Lightbulb,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Pro Tips",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             
             Spacer(modifier = Modifier.height(12.dp))
             
             val tips = listOf(
-                "📤 Regularly backup your data to avoid losing progress",
-                "📧 Share backup file to your email for safe storage",
-                "☁️ Save backup to Google Drive or other cloud storage",
-                "📱 Before changing phones, export your data first"
+                "Regularly backup your data to avoid losing progress",
+                "Share backup file to your email for safe storage",
+                "Save backup to Google Drive or other cloud storage",
+                "Before changing phones, export your data first"
             )
             
             tips.forEach { tip ->
-                Text(
-                    text = "• $tip",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        AppIcons.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = tip,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }

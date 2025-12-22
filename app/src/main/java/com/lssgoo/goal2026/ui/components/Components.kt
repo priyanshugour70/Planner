@@ -123,13 +123,24 @@ fun GoalCard(
                     color = Color(goal.color).copy(alpha = 0.15f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = "${goal.category.emoji} ${goal.category.displayName}",
+                    Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        color = Color(goal.color),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Medium
-                    )
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = goal.category.getIcon(),
+                            contentDescription = null,
+                            tint = Color(goal.color),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = goal.category.displayName,
+                            color = Color(goal.color),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
             
@@ -197,6 +208,7 @@ fun TaskItem(
     modifier: Modifier = Modifier
 ) {
     val priorityColor = Color(task.priority.color)
+    val completedColor = Color.Gray // Define completed color locally if not available
     
     Card(
         modifier = modifier
@@ -218,7 +230,7 @@ fun TaskItem(
             // Checkbox with animation
             IconButton(onClick = onToggle) {
                 Icon(
-                    imageVector = if (task.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
+                    imageVector = if (task.isCompleted) AppIcons.CheckCircle else AppIcons.RadioButtonUnchecked,
                     contentDescription = "Toggle task",
                     tint = if (task.isCompleted) completedColor else priorityColor
                 )
@@ -253,12 +265,21 @@ fun TaskItem(
             }
             
             // Priority indicator
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(priorityColor)
-            )
+            if (!task.isCompleted && task.priority == TaskPriority.HIGH) {
+                Icon(
+                    imageVector = AppIcons.PriorityHigh,
+                    contentDescription = "High Priority",
+                    tint = priorityColor,
+                    modifier = Modifier.size(16.dp)
+                )
+            } else if (!task.isCompleted) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(priorityColor)
+                )
+            }
         }
     }
 }
@@ -516,6 +537,7 @@ fun EmptyState(
 @Composable
 fun SectionHeader(
     title: String,
+    icon: ImageVector? = null,
     action: String? = null,
     onActionClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -525,11 +547,22 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
         
         if (action != null) {
             TextButton(onClick = { onActionClick?.invoke() }) {

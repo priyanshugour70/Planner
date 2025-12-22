@@ -41,18 +41,20 @@ fun DashboardScreen(
     val stats by viewModel.dashboardStats.collectAsState()
     val goals by viewModel.goals.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
     
-    val greeting = remember {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        when {
-            hour < 12 -> "Good Morning"
-            hour < 17 -> "Good Afternoon"
-            else -> "Good Evening"
-        }
+    // Personalized greeting using user profile
+    val greeting = remember(userProfile) {
+        viewModel.getUserGreeting()
     }
     
     val dateFormat = remember { SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()) }
     val currentDate = remember { dateFormat.format(Date()) }
+    
+    // Get motivational thought of the day
+    val motivationalThought = remember {
+        MotivationalThoughts.getThoughtOfTheDay()
+    }
     
     if (isLoading) {
         Box(
@@ -92,11 +94,22 @@ fun DashboardScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = "🎯 Let's crush your 2026 goals!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Target,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Let's crush your 2026 goals!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = currentDate,
@@ -118,7 +131,7 @@ fun DashboardScreen(
                         title = "Overall Progress",
                         value = "${(stats.overallProgress * 100).toInt()}%",
                         subtitle = "${stats.completedMilestones}/${stats.totalMilestones} milestones",
-                        icon = Icons.Filled.TrendingUp,
+                        icon = AppIcons.TrendingUp,
                         gradientColors = GradientColors.purpleBlue,
                         modifier = Modifier.width(180.dp)
                     )
@@ -128,7 +141,7 @@ fun DashboardScreen(
                         title = "Today's Tasks",
                         value = "${stats.tasksCompletedToday}/${stats.totalTasksToday}",
                         subtitle = "completed",
-                        icon = Icons.Filled.TaskAlt,
+                        icon = AppIcons.Tasks,
                         gradientColors = GradientColors.cyanGreen,
                         modifier = Modifier.width(180.dp)
                     )
@@ -136,9 +149,9 @@ fun DashboardScreen(
                 item {
                     StatsCard(
                         title = "Current Streak",
-                        value = "${stats.currentStreak} 🔥",
+                        value = "${stats.currentStreak}",
                         subtitle = "Best: ${stats.longestStreak} days",
-                        icon = Icons.Filled.LocalFireDepartment,
+                        icon = AppIcons.Streak,
                         gradientColors = GradientColors.orangePink,
                         modifier = Modifier.width(180.dp)
                     )
@@ -160,7 +173,8 @@ fun DashboardScreen(
         // Today's Focus
         item {
             SectionHeader(
-                title = "🎯 Your Goals",
+                title = "Your Goals",
+                icon = AppIcons.Target,
                 action = "View All",
                 onActionClick = onViewAllGoals,
                 modifier = Modifier.padding(horizontal = 20.dp)
@@ -189,7 +203,8 @@ fun DashboardScreen(
         // Quick Tasks Section
         item {
             SectionHeader(
-                title = "📋 Upcoming Tasks",
+                title = "Upcoming Tasks",
+                icon = AppIcons.Tasks,
                 action = "View All",
                 onActionClick = onViewAllTasks,
                 modifier = Modifier.padding(horizontal = 20.dp)
@@ -262,9 +277,11 @@ fun MiniGoalCard(
                         .background(Color(goal.color).copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = goal.category.emoji,
-                        fontSize = 18.sp
+                    Icon(
+                        imageVector = goal.category.getIcon(),
+                        contentDescription = goal.category.displayName,
+                        tint = Color(goal.color),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -311,21 +328,7 @@ fun MiniGoalCard(
 
 @Composable
 fun MotivationalQuoteCard(modifier: Modifier = Modifier) {
-    val quotes = listOf(
-        "\"The only way to do great work is to love what you do.\" - Steve Jobs",
-        "\"Success is not final, failure is not fatal: it is the courage to continue that counts.\" - Winston Churchill",
-        "\"The future belongs to those who believe in the beauty of their dreams.\" - Eleanor Roosevelt",
-        "\"It does not matter how slowly you go as long as you do not stop.\" - Confucius",
-        "\"Believe you can and you're halfway there.\" - Theodore Roosevelt",
-        "\"Your limitation—it's only your imagination.\"",
-        "\"Push yourself, because no one else is going to do it for you.\"",
-        "\"Great things never come from comfort zones.\"",
-        "\"Dream it. Wish it. Do it.\"",
-        "\"Success doesn't just find you. You have to go out and get it.\""
-    )
-    
-    val dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-    val quote = quotes[dayOfYear % quotes.size]
+    val thought = MotivationalThoughts.getThoughtOfTheDay()
     
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -338,9 +341,11 @@ fun MotivationalQuoteCard(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Text(
-                text = "💡",
-                fontSize = 24.sp
+            Icon(
+                imageVector = AppIcons.Lightbulb,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -352,9 +357,10 @@ fun MotivationalQuoteCard(modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = quote,
+                    text = thought,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                 )
             }
         }
@@ -411,9 +417,11 @@ fun YearProgressCard(modifier: Modifier = Modifier) {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "📅",
-                        fontSize = 22.sp
+                    Icon(
+                        imageVector = AppIcons.Calendar,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
