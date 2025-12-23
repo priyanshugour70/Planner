@@ -73,15 +73,24 @@ fun DynamicBottomNavBar(
                     ambientColor = accentColor.copy(alpha = 0.2f),
                     spotColor = accentColor.copy(alpha = 0.2f)
                 ),
-            shape = RoundedCornerShape(32.dp),
+            shape = RoundedCornerShape(36.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.1f)
+                    )
+                )
             )
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 6.dp),
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left Chevron
@@ -185,7 +194,7 @@ fun DynamicNavItem(
 ) {
     val haptic = LocalHapticFeedback.current
     val iconSize by animateDpAsState(
-        targetValue = if (isSelected) 30.dp else 26.dp,
+        targetValue = if (isSelected) 32.dp else 28.dp,
         animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
     )
     
@@ -197,13 +206,13 @@ fun DynamicNavItem(
     Box(
         modifier = Modifier
             .graphicsLayer(scaleX = containerScale, scaleY = containerScale)
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (isSelected) accentColor.copy(alpha = 0.12f) else Color.Transparent)
+            .clip(RoundedCornerShape(22.dp))
+            .background(if (isSelected) accentColor.copy(alpha = 0.15f) else Color.Transparent)
             .clickable { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick() 
             }
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -212,7 +221,7 @@ fun DynamicNavItem(
             Icon(
                 imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
                 contentDescription = destination.label,
-                tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                 modifier = Modifier.size(iconSize)
             )
             
@@ -223,10 +232,10 @@ fun DynamicNavItem(
             ) {
                 Text(
                     text = destination.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
                     color = accentColor,
-                    modifier = Modifier.padding(start = 6.dp)
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }
