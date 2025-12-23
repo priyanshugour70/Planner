@@ -10,7 +10,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.lssgoo.planner.MainActivity
 import com.lssgoo.planner.R
-import com.lssgoo.planner.data.model.MotivationalThoughts
+import com.lssgoo.planner.features.dashboard.models.MotivationalThoughts
 
 class NotificationReceiver : BroadcastReceiver() {
 

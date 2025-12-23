@@ -1,6 +1,8 @@
 package com.lssgoo.planner.data.search
 
 import com.lssgoo.planner.data.model.*
+import com.lssgoo.planner.ui.components.getIcon
+import com.lssgoo.planner.features.reminders.models.ItemPriority
 
 /**
  * Search manager for global search across all app content
@@ -273,8 +275,9 @@ class SearchManager(
             score += 20f
         }
         
-        result.priority?.let {
-            score += (it.level / 10f)
+        val p = result.priority
+        p?.let { priority ->
+            score += (priority.level / 10f)
         }
         
         return score

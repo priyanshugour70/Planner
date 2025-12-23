@@ -60,6 +60,40 @@ val errorLight = Color(0xFFD32F2F)
 val successLight = Color(0xFF388E3C)
 val warningLight = Color(0xFFF57C00)
 
+// --- NEW THEME COLORS ---
+
+// OCEAN THEME (Deep Blues & Teals)
+val oceanPrimary = Color(0xFF006064)
+val oceanSecondary = Color(0xFF00838F)
+val oceanTertiary = Color(0xFF0097A7)
+val oceanBackground = Color(0xFFE0F7FA)
+val oceanSurface = Color(0xFFB2EBF2)
+val oceanOnSurface = Color(0xFF004D40)
+
+// SUNSET THEME (Warm Pinks & Oranges)
+val sunsetPrimary = Color(0xFFE91E63)
+val sunsetSecondary = Color(0xFFFF5722)
+val sunsetTertiary = Color(0xFFFF9800)
+val sunsetBackground = Color(0xFFFFF3E0)
+val sunsetSurface = Color(0xFFFFE0B2)
+val sunsetOnSurface = Color(0xFF880E4F)
+
+// FOREST THEME (Natural Greens)
+val forestPrimary = Color(0xFF2E7D32)
+val forestSecondary = Color(0xFF558B2F)
+val forestTertiary = Color(0xFF827717)
+val forestBackground = Color(0xFFF1F8E9)
+val forestSurface = Color(0xFFDCEDC8)
+val forestOnSurface = Color(0xFF1B5E20)
+
+// MIDNIGHT THEME (Deep Purple & AMOLED Black)
+val midnightPrimary = Color(0xFF7E57C2)
+val midnightSecondary = Color(0xFF5E35B1)
+val midnightTertiary = Color(0xFF4527A0)
+val midnightBackground = Color(0xFF000000)
+val midnightSurface = Color(0xFF121212)
+val midnightOnSurface = Color(0xFFEDE7F6)
+
 // Goal Category Colors - Black, White, Light Blue variants
 object GoalColors {
     val health = Color(0xFF26C6DA)  // Light Blue Cyan
@@ -90,3 +124,66 @@ val completedColor = Color(0xFF26C6DA)  // Light Blue
 val pendingColor = Color(0xFF4DD0E1)  // Lighter Blue
 val overdueColor = Color(0xFFEF5350)  // Red (error color)
 val inProgressColor = Color(0xFF0097A7)  // Teal Blue
+
+// Finance Semantic Colors - for Finance screens and dashboards
+object FinanceColors {
+    val income = Color(0xFF43A047)  // Green for income
+    val incomeLight = Color(0xFFB9F6CA)  // Light green
+    val expense = Color(0xFFE53935)  // Red for expense
+    val expenseLight = Color(0xFFFF8A80)  // Light red
+    val borrowed = Color(0xFFF4511E)  // Orange for borrowed
+    val lent = Color(0xFF1E88E5)  // Blue for lent
+    val update = Color(0xFF1E88E5)  // Blue for update actions
+}
+
+// Search Result Type Colors
+object SearchTypeColors {
+    val event = Color(0xFFE91E63)  // Pink for events
+    val reminder = Color(0xFFFF9800)  // Orange for reminders
+    val milestone = Color(0xFF673AB7)  // Purple for milestones
+    val habit = Color(0xFF4CAF50)  // Green for habits
+    val journal = Color(0xFF00BCD4)  // Cyan for journal
+    val finance = Color(0xFF8BC34A)  // Light green for finance
+}
+
+// Calendar Indicator Colors
+object CalendarColors {
+    val task = Color(0xFF2196F3)  // Blue for tasks
+    val event = Color(0xFF4CAF50)  // Green for events
+    val reminder = Color(0xFFFF9800)  // Orange for reminders
+    val urgent = Color(0xFFE53935)  // Red for urgent items
+}
+
+// Route/Screen Accent Colors
+object RouteColors {
+    val goals = Color(0xFF0097A7)  // Teal Blue
+    val calendar = Color(0xFF00ACC1)  // Cyan Blue
+    val notes = Color(0xFF4DD0E1)  // Light Cyan
+    val tasks = Color(0xFF26C6DA)  // Light Blue Cyan
+    val habits = Color(0xFF4DD0E1)  // Light Cyan
+    val journal = Color(0xFF0097A7)  // Teal Blue
+    val finance = Color(0xFF26C6DA)  // Light Blue Cyan
+    val search = Color(0xFF00ACC1)  // Cyan Blue
+    val analytics = Color(0xFF0288D1)  // Blue
+    val settings = Color(0xFF0288D1)  // Blue
+}
+
+// Theme Preview Colors for Settings
+object ThemePreviewColors {
+    val ocean = Color(0xFF006064)  // Deep teal
+    val sunset = Color(0xFFE91E63)  // Pink
+    val forest = Color(0xFF2E7D32)  // Green
+    val midnight = Color(0xFF7E57C2)  // Purple
+}
+
+object NoteColors {
+    val colors = listOf(
+        0xFF80DEEA, // Cyan
+        0xFF00ACC1, // Blue
+        0xFF4FC3F7, // Sky
+        0xFFFBC02D, // Amber
+        0xFFF48FB1, // Pink
+        0xFFA5D6A7, // Green
+        0xFFCE93D8  // Purple
+    )
+}
