@@ -416,7 +416,173 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
         return goals.value.find { it.id == id }
     }
     
-    fun getAllItemsForDate(d: Long): List<CalendarItem> = emptyList()
+    fun getAllItemsForDate(d: Long): List<CalendarItem> {
+        val items = mutableListOf<CalendarItem>()
+        
+        // Helper to check same day
+        fun isDay(timestamp: Long) = com.lssgoo.planner.features.calendar.util.CalendarUtils.isSameDay(timestamp, d)
+
+        // 1. NOTES (Created, Updated, or Reminder)
+        notes.value.forEach { note ->
+            if (isDay(note.createdAt)) {
+                items.add(CalendarItem(
+                    id = "note_new_${note.id}",
+                    title = "New Note: ${note.title}",
+                    description = note.content.take(60),
+                    date = d,
+                    type = CalendarItemType.NOTE,
+                    priority = note.priority,
+                    color = note.color
+                ))
+            } else if (isDay(note.updatedAt)) {
+                items.add(CalendarItem(
+                    id = "note_upd_${note.id}",
+                    title = "Updated Note: ${note.title}",
+                    description = note.content.take(60),
+                    date = d,
+                    type = CalendarItemType.NOTE,
+                    priority = note.priority,
+                    color = note.color
+                ))
+            }
+            if (note.reminderTime?.let { isDay(it) } == true) {
+                items.add(CalendarItem(
+                    id = "note_rem_${note.id}",
+                    title = "Reminder: ${note.title}",
+                    description = note.content.take(60),
+                    date = d,
+                    type = CalendarItemType.REMINDER,
+                    priority = note.priority,
+                    color = note.color
+                ))
+            }
+        }
+
+        // 2. GOALS (Created, Updated, or Milestones)
+        goals.value.forEach { goal ->
+            if (isDay(goal.createdAt)) {
+                items.add(CalendarItem(
+                    id = "goal_new_${goal.id}",
+                    title = "New Goal: ${goal.title}",
+                    description = goal.description,
+                    date = d,
+                    type = CalendarItemType.GOAL,
+                    priority = ItemPriority.P2,
+                    color = goal.color
+                ))
+            }
+            goal.milestones.forEach { milestone ->
+                if (milestone.completedAt?.let { isDay(it) } == true) {
+                    items.add(CalendarItem(
+                        id = "milestone_comp_${milestone.id}",
+                        title = "Milestone: ${milestone.title}",
+                        description = "Achieved in goal: ${goal.title}",
+                        date = d,
+                        type = CalendarItemType.GOAL_MILESTONE,
+                        priority = ItemPriority.P1,
+                        color = goal.color,
+                        isCompleted = true
+                    ))
+                }
+            }
+        }
+
+        // 3. TASKS (Due)
+        tasks.value.forEach { task ->
+            if (task.dueDate?.let { isDay(it) } == true) {
+                items.add(CalendarItem(
+                    id = "task_due_${task.id}",
+                    title = "Task Due: ${task.title}",
+                    description = task.description,
+                    date = d,
+                    type = CalendarItemType.TASK,
+                    priority = ItemPriority.P4,
+                    color = 0xFF2196F3,
+                    isCompleted = task.isCompleted
+                ))
+            }
+        }
+
+        // 4. JOURNAL (Entries)
+        journalEntries.value.forEach { entry ->
+            if (isDay(entry.date)) {
+                items.add(CalendarItem(
+                    id = "journal_${entry.id}",
+                    title = "Journal: ${entry.mood.emoji} ${entry.title.ifBlank { "Daily Reflection" }}",
+                    description = entry.content.take(60),
+                    date = d,
+                    type = CalendarItemType.JOURNAL,
+                    priority = ItemPriority.P5,
+                    color = entry.mood.color
+                ))
+            }
+        }
+
+        // 5. FINANCE (Transactions)
+        transactions.value.forEach { txn ->
+            if (isDay(txn.date)) {
+                items.add(CalendarItem(
+                    id = "txn_${txn.id}",
+                    title = "Finance: ${txn.category.icon} ${txn.type} ₹${txn.amount}",
+                    description = txn.note,
+                    date = d,
+                    type = CalendarItemType.FINANCE,
+                    priority = if (txn.amount > 5000) ItemPriority.P1 else ItemPriority.P3,
+                    color = if (txn.type.name == "EXPENSE") 0xFFF44336 else 0xFF4CAF50
+                ))
+            }
+        }
+
+        // 6. HABITS (Completions)
+        habits.value.forEach { habit ->
+            val entries = storageManager.getHabitEntries(habit.id)
+            entries.forEach { entry ->
+                if (isDay(entry.date) && entry.isCompleted) {
+                    items.add(CalendarItem(
+                        id = "habit_${entry.id}",
+                        title = "Habit: ${habit.icon} ${habit.title}",
+                        description = "Completed target: ${habit.targetValue} ${habit.unit ?: ""}",
+                        date = d,
+                        type = CalendarItemType.HABIT,
+                        priority = ItemPriority.P6,
+                        color = habit.iconColor,
+                        isCompleted = true
+                    ))
+                }
+            }
+        }
+
+        // 7. EVENTS & REMINDERS
+        events.value.forEach { event ->
+            if (isDay(event.date)) {
+                items.add(CalendarItem(
+                    id = "event_${event.id}",
+                    title = "Event: ${event.title}",
+                    description = event.description,
+                    date = d,
+                    type = CalendarItemType.EVENT,
+                    priority = ItemPriority.P3,
+                    color = 0xFFFFC107
+                ))
+            }
+        }
+        
+        reminders.value.forEach { reminder ->
+            if (isDay(reminder.reminderTime)) {
+                items.add(CalendarItem(
+                    id = "rem_${reminder.id}",
+                    title = "Reminder: ${reminder.title}",
+                    description = reminder.description,
+                    date = d,
+                    type = CalendarItemType.REMINDER,
+                    priority = reminder.priority,
+                    color = reminder.color
+                ))
+            }
+        }
+
+        return items.sortedBy { it.priority.level }
+    }
 
     // ======================== FEATURE METHODS RESTORED ========================
 
@@ -569,6 +735,18 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
             heatmapData = heatmap,
             last7Days = last7
         )
+    }
+
+    fun getMonthActivityCounts(month: java.util.Calendar): Map<Int, Int> {
+        val counts = mutableMapOf<Int, Int>()
+        val cal = month.clone() as java.util.Calendar
+        val daysInMonth = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+        
+        for (day in 1..daysInMonth) {
+            cal.set(java.util.Calendar.DAY_OF_MONTH, day)
+            counts[day] = getAllItemsForDate(cal.timeInMillis).size
+        }
+        return counts
     }
 
     fun getGlobalHeatmap(): Map<Long, Int> {
