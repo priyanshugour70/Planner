@@ -23,10 +23,10 @@ import java.io.InputStream
 class S3Manager(private val context: Context) {
     
     companion object {
-        private val BUCKET_NAME = BuildConfig.S3_BUCKET_NAME
-        private val ACCESS_KEY = BuildConfig.S3_ACCESS_KEY
-        private val SECRET_KEY = BuildConfig.S3_SECRET_KEY
-        private val REGION = BuildConfig.S3_REGION
+        private val BUCKET_NAME = AppConstants.S3_BUCKET_NAME
+        private val ACCESS_KEY = AppConstants.S3_ACCESS_KEY
+        private val SECRET_KEY = AppConstants.S3_SECRET_KEY
+        private val REGION = AppConstants.S3_REGION
     }
     
     private val s3Client: AmazonS3Client by lazy {
@@ -41,7 +41,7 @@ class S3Manager(private val context: Context) {
      */
     private suspend fun getS3Key(): String = withContext(Dispatchers.IO) {
         val imei = DeviceUtils.getDeviceId(context)
-        "planner_backup_$imei.json"
+        "${AppConstants.BACKUP_FILE_PREFIX}$imei${AppConstants.BACKUP_FILE_EXTENSION}"
     }
     
     /**

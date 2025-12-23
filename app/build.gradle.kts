@@ -17,12 +17,16 @@ android {
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(keystorePropertiesFile.inputStream())
     }
-
     val s3PropertiesFile = rootProject.file("s3.properties")
     val s3Properties = Properties()
     if (s3PropertiesFile.exists()) {
         s3Properties.load(s3PropertiesFile.inputStream())
     }
+
+    val s3Bucket = System.getenv("S3_BUCKET_NAME") ?: s3Properties["S3_BUCKET_NAME"]?.toString() ?: ""
+    val s3AccessKey = System.getenv("S3_ACCESS_KEY") ?: s3Properties["S3_ACCESS_KEY"]?.toString() ?: ""
+    val s3SecretKey = System.getenv("S3_SECRET_KEY") ?: s3Properties["S3_SECRET_KEY"]?.toString() ?: ""
+    val s3Region = System.getenv("S3_REGION") ?: s3Properties["S3_REGION"]?.toString() ?: "us-east-1"
 
     signingConfigs {
         create("release") {
@@ -30,6 +34,8 @@ android {
             storePassword = keystoreProperties["storePassword"] as String? ?: System.getenv("KEYSTORE_PASSWORD")
             keyAlias = keystoreProperties["keyAlias"] as String? ?: "planner"
             keyPassword = keystoreProperties["keyPassword"] as String? ?: System.getenv("KEY_PASSWORD")
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
         }
     }
 
@@ -42,11 +48,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // S3 Config from properties
-        buildConfigField("String", "S3_BUCKET_NAME", "\"${s3Properties["S3_BUCKET_NAME"] ?: ""}\"")
-        buildConfigField("String", "S3_ACCESS_KEY", "\"${s3Properties["S3_ACCESS_KEY"] ?: ""}\"")
-        buildConfigField("String", "S3_SECRET_KEY", "\"${s3Properties["S3_SECRET_KEY"] ?: ""}\"")
-        buildConfigField("String", "S3_REGION", "\"${s3Properties["S3_REGION"] ?: "us-east-1"}\"")
+        // S3 Config from properties/env
+        buildConfigField("String", "S3_BUCKET_NAME", "\"$s3Bucket\"")
+        buildConfigField("String", "S3_ACCESS_KEY", "\"$s3AccessKey\"")
+        buildConfigField("String", "S3_SECRET_KEY", "\"$s3SecretKey\"")
+        buildConfigField("String", "S3_REGION", "\"$s3Region\"")
     }
 
     buildTypes {
