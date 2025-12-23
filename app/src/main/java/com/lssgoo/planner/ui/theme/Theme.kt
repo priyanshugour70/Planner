@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.lssgoo.planner.data.model.ThemeMode
+import com.lssgoo.planner.features.settings.models.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = primaryDark,
