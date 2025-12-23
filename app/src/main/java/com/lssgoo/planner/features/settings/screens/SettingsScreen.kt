@@ -48,6 +48,7 @@ import java.util.Locale
 fun SettingsScreen(
     viewModel: PlannerViewModel,
     onBack: () -> Unit,
+    onNavigateToPin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -184,6 +185,9 @@ fun SettingsScreen(
                     )
                 }
                 
+                // Security Section
+
+                
                 // Theme Selection Dialog
                 if (showThemeDialog) {
                     AlertDialog(
@@ -292,6 +296,22 @@ fun SettingsScreen(
                                 Text("Cancel")
                             }
                         }
+                    )
+                }
+            }
+            
+            // Security Section
+            item {
+                SettingsSection(
+                    title = "Security",
+                    icon = Icons.Outlined.Lock
+                ) {
+                     SettingsItem(
+                        icon = Icons.Filled.Lock,
+                        title = "App Lock / PIN",
+                        subtitle = if (settings.pinCode.isNullOrEmpty()) "Setup a PIN to protect your data" else "PIN is enabled",
+                        onClick = onNavigateToPin,
+                        iconColor = MaterialTheme.colorScheme.secondary
                     )
                 }
             }

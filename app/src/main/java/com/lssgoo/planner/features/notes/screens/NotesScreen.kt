@@ -3,6 +3,8 @@ package com.lssgoo.planner.features.notes.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
@@ -30,7 +32,7 @@ import com.lssgoo.planner.data.model.*
 import com.lssgoo.planner.ui.components.*
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
 import com.lssgoo.planner.features.notes.components.NoteCard
-import com.lssgoo.planner.ui.theme.NoteColors
+import com.lssgoo.planner.features.notes.models.NoteColors
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,8 +45,17 @@ fun NotesScreen(
     val notes by viewModel.notes.collectAsState()
     var showAddNoteSheet by remember { mutableStateOf(false) }
     var editingNote by remember { mutableStateOf<Note?>(null) }
+    var noteToUnlock by remember { mutableStateOf<Note?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var isGridView by remember { mutableStateOf(true) }
+    
+    val handleNoteClick = { note: Note ->
+        if (note.isLocked) {
+            noteToUnlock = note
+        } else {
+            editingNote = note
+        }
+    }
     
     val filteredNotes = if (searchQuery.isBlank()) {
         notes.sortedByDescending { it.isPinned }
@@ -143,7 +154,7 @@ fun NotesScreen(
                     else "Try a different search term",
                     icon = Icons.Outlined.StickyNote2,
                     actionText = if (searchQuery.isBlank()) "Create Note" else null,
-                    onActionClick = if (searchQuery.isBlank()) {{ showAddNoteSheet = true }} else null,
+                    onActionClick = if (searchQuery.isBlank()) { { showAddNoteSheet = true } } else null,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -182,7 +193,7 @@ fun NotesScreen(
                         items(pinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                onClick = { editingNote = note }
+                                onClick = { handleNoteClick(note) }
                             )
                         }
                         
@@ -210,7 +221,7 @@ fun NotesScreen(
                         items(otherNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                onClick = { editingNote = note }
+                                onClick = { handleNoteClick(note) }
                             )
                         }
                     }
@@ -243,7 +254,7 @@ fun NotesScreen(
                             items(pinnedNotes, key = { it.id }) { note ->
                                 NoteListItem(
                                     note = note,
-                                    onClick = { editingNote = note }
+                                    onClick = { handleNoteClick(note) }
                                 )
                             }
                         }
@@ -272,7 +283,7 @@ fun NotesScreen(
                             items(otherNotes, key = { it.id }) { note ->
                                 NoteListItem(
                                     note = note,
-                                    onClick = { editingNote = note }
+                                    onClick = { handleNoteClick(note) }
                                 )
                             }
                         }
@@ -282,6 +293,28 @@ fun NotesScreen(
                 }
             }
         }
+    }
+    
+    // Unlock Dialog
+    if (noteToUnlock != null) {
+        AlertDialog(
+            onDismissRequest = { noteToUnlock = null },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            content = {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    com.lssgoo.planner.features.settings.screens.PinLockScreen(
+                        viewModel = viewModel,
+                        onUnlockSuccess = {
+                            editingNote = noteToUnlock
+                            noteToUnlock = null
+                        }
+                    )
+                }
+            }
+        )
     }
     
     // Add/Edit Note Sheet
@@ -342,27 +375,48 @@ fun NoteListItem(
             Spacer(modifier = Modifier.width(12.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = note.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = note.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (note.isLocked) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Locked",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 
-                Text(
-                    text = note.content,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (!note.isLocked) {
+                    Text(
+                        text = note.content,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else {
+                    Text(
+                        text = "Contents locked",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 val dateFormat = SimpleDateFormat("MMM d", Locale.getDefault())
                 Text(
-                    text = dateFormat.format(Date(note.updatedAt)),
+                    text = "${dateFormat.format(Date(note.updatedAt))} • ${note.category}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -393,7 +447,14 @@ fun NoteEditorSheet(
     var content by remember { mutableStateOf(note?.content ?: "") }
     var selectedColor by remember { mutableStateOf(note?.color ?: NoteColors.colors.first()) }
     var tagsText by remember { mutableStateOf(note?.tags?.joinToString(", ") ?: "") }
+    var isLocked by remember { mutableStateOf(note?.isLocked ?: false) }
+    var category by remember { mutableStateOf(note?.category ?: "General") }
+    var mood by remember { mutableStateOf(note?.mood ?: "Neutral") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -404,6 +465,7 @@ fun NoteEditorSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             // Header
             Row(
@@ -441,6 +503,40 @@ fun NoteEditorSheet(
             
             Spacer(modifier = Modifier.height(20.dp))
             
+            // Lock Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                        contentDescription = null,
+                        tint = if (isLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Lock Note",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "Require PIN to view contents",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Switch(
+                    checked = isLocked,
+                    onCheckedChange = { isLocked = it }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Title field
             OutlinedTextField(
                 value = title,
@@ -453,6 +549,29 @@ fun NoteEditorSheet(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            // Category & Mood
+            Row(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Category") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = mood,
+                    onValueChange = { mood = it },
+                    label = { Text("Mood (Emoji)") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Content field
             OutlinedTextField(
                 value = content,
@@ -460,7 +579,7 @@ fun NoteEditorSheet(
                 label = { Text("Note content") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(150.dp),
                 shape = RoundedCornerShape(12.dp)
             )
             
@@ -492,7 +611,7 @@ fun NoteEditorSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                NoteColors.colors.forEach { color ->
+                for (color in NoteColors.allColors.take(8)) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -500,7 +619,7 @@ fun NoteEditorSheet(
                             .background(Color(color))
                             .then(
                                 if (selectedColor == color) {
-                                    Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                    Modifier.border(3.dp, primaryColor, CircleShape)
                                 } else Modifier
                             )
                             .clickable { selectedColor = color }
@@ -524,8 +643,12 @@ fun NoteEditorSheet(
                             content = content,
                             color = selectedColor,
                             isPinned = note?.isPinned ?: false,
+                            isLocked = isLocked,
+                            category = category.ifBlank { "General" },
+                            mood = mood.ifBlank { "Neutral" },
                             tags = tags,
-                            createdAt = note?.createdAt ?: System.currentTimeMillis()
+                            createdAt = note?.createdAt ?: System.currentTimeMillis(),
+                            updatedAt = System.currentTimeMillis()
                         )
                     )
                 },

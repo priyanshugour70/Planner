@@ -22,6 +22,7 @@ object Routes {
     const val BACKUP = "backup"
     const val ONBOARDING = "onboarding"
     const val PROFILE = "profile"
+    const val APPLOCK = "app_lock"
     
     // New Feature Routes
     const val HABITS = "habits"

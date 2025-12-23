@@ -78,6 +78,12 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             loadGoals()
         }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            loadNotes()
+        }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            loadDashboardStats()
+        }
     }
 
     private suspend fun checkCloudBackup() {
@@ -89,6 +95,7 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
                     _userProfile.value = storageManager.getUserProfile() ?: UserProfile()
                     _isOnboardingComplete.value = storageManager.isOnboardingComplete()
                     _settings.value = storageManager.getSettings()
+                    loadNotes()
                 }
                 _isCheckingSync.value = false
             }
@@ -120,6 +127,11 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
             _settings.value = newSettings
             syncToCloud()
         }
+    }
+    
+    fun setPinCode(pin: String?) {
+        val current = _settings.value
+        updateSettings(current.copy(pinCode = pin))
     }
     
     fun updateUserProfile(profile: UserProfile) {
@@ -157,6 +169,7 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
                     _userProfile.value = storageManager.getUserProfile() ?: UserProfile()
                     _isOnboardingComplete.value = storageManager.isOnboardingComplete()
                     _settings.value = storageManager.getSettings()
+                    loadNotes()
                     showSnackbar("Data restored!")
                 } else {
                     showSnackbar("No cloud backup found")
@@ -182,11 +195,22 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
              loadGoals()
              loadHabits()
              loadJournalData()
+             loadNotes()
          }
          return success
-    }
-    
+     }
+     
     fun initializeAutoSync() {}
+
+    private fun loadNotes() {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                notes.value = storageManager.getNotes()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     private fun loadFinanceData() {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -360,9 +384,31 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
         }
     }
     
-    fun updateNote(n: Note) {}
-    fun deleteNote(id: String) {}
-    fun toggleNotePin(id: String) {}
+    fun updateNote(n: Note) {
+        viewModelScope.launch {
+            storageManager.updateNote(n)
+            loadNotes()
+            syncToCloud()
+        }
+    }
+    
+    fun deleteNote(id: String) {
+        viewModelScope.launch {
+            storageManager.deleteNote(id)
+            loadNotes()
+            syncToCloud()
+        }
+    }
+    
+    fun toggleNotePin(id: String) {
+        viewModelScope.launch {
+            val note = notes.value.find { it.id == id } ?: return@launch
+            val updated = note.copy(isPinned = !note.isPinned)
+            storageManager.updateNote(updated)
+            loadNotes()
+            syncToCloud()
+        }
+    }
     fun getUserGreeting(): String = "Hello!"
     fun getUpcomingTasks(): List<Task> = emptyList()
     
@@ -447,17 +493,47 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
     fun addReminder(r: Reminder) {
         viewModelScope.launch {
             storageManager.addReminder(r)
+            if (r.isEnabled && r.reminderTime > System.currentTimeMillis()) {
+                 com.lssgoo.planner.notification.PlannerNotificationManager(getApplication()).scheduleReminder(
+                     notificationId = r.notificationId,
+                     title = r.title,
+                     message = r.description.ifBlank { "Reminder" },
+                     triggerTime = r.reminderTime,
+                     itemId = r.id
+                 )
+            }
             syncToCloud()
         }
     }
     fun updateReminder(r: Reminder) {
         viewModelScope.launch {
             storageManager.updateReminder(r)
+             val manager = com.lssgoo.planner.notification.PlannerNotificationManager(getApplication())
+             if (r.isEnabled && r.reminderTime > System.currentTimeMillis()) {
+                 manager.scheduleReminder(
+                     notificationId = r.notificationId,
+                     title = r.title,
+                     message = r.description.ifBlank { "Reminder" },
+                     triggerTime = r.reminderTime,
+                     itemId = r.id
+                 )
+             } else {
+                 manager.cancelReminder(r.notificationId)
+             }
             syncToCloud()
         }
     }
     fun deleteReminder(id: String) {
         viewModelScope.launch {
+             // We need to fetch it first to get notificationId?
+             // Or assumes storageManager handles it?
+             // Ideally we should know notificationId.
+             // For now, if we delete, we might miss cancelling if we don't have the object.
+             // Let's try to get it first.
+             val reminder = reminders.value.find { it.id == id }
+             if (reminder != null) {
+                  com.lssgoo.planner.notification.PlannerNotificationManager(getApplication()).cancelReminder(reminder.notificationId)
+             }
             storageManager.deleteReminder(id)
             syncToCloud()
         }
@@ -584,5 +660,11 @@ class PlannerViewModel(application: Application) : BaseViewModel(application) {
     }
 
     fun exportFinanceCSV(): String = financeRepository.generateTransactionsCSV()
+
+    fun loadDashboardStats() {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            dashboardStats.value = storageManager.getDashboardStats()
+        }
+    }
 
 }

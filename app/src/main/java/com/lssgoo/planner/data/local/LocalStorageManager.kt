@@ -388,6 +388,20 @@ class LocalStorageManager(context: Context) {
             task.dueDate?.let { it in today..todayEnd } ?: false
         }
         
+        // HABIT STATS
+        val allHabits = getHabits().filter { it.isActive }
+        val cal = java.util.Calendar.getInstance()
+        cal.timeInMillis = System.currentTimeMillis()
+        // Convert Calendar day (Sun=1) to ISO (Mon=1)
+        val todayDayOfWeek = (cal.get(java.util.Calendar.DAY_OF_WEEK) + 5) % 7 + 1
+        
+        val todayHabits = allHabits.filter { it.frequency.contains(todayDayOfWeek) }
+        val todayEntries = getHabitEntriesForDate(today).associateBy { it.habitId }
+        
+        val habitsCompleted = todayHabits.count { habit ->
+            todayEntries[habit.id]?.isCompleted == true
+        }
+
         val overallProgress = if (totalMilestones > 0) {
             completedMilestones.toFloat() / totalMilestones.toFloat()
         } else 0f
@@ -400,7 +414,9 @@ class LocalStorageManager(context: Context) {
             totalTasksToday = todayTasks.size,
             currentStreak = calculateCurrentStreak(),
             longestStreak = calculateLongestStreak(),
-            overallProgress = overallProgress
+            overallProgress = overallProgress,
+            totalHabitsToday = todayHabits.size,
+            habitsCompletedToday = habitsCompleted
         )
     }
     

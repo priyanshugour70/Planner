@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -60,7 +62,14 @@ fun NoteCard(
                     modifier = Modifier.weight(1f)
                 )
                 
-                if (note.isPinned) {
+                if (note.isLocked) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Locked",
+                        tint = noteColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                } else if (note.isPinned) {
                     Icon(
                         imageVector = Icons.Filled.PushPin,
                         contentDescription = "Pinned",
@@ -70,35 +79,53 @@ fun NoteCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = note.content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis
-            )
-            
-            if (note.tags.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    note.tags.take(3).forEach { tag ->
-                        Surface(
-                            color = noteColor.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = "#$tag",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = noteColor,
-                                fontWeight = FontWeight.Medium
-                            )
+            if (!note.isLocked) {
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = note.content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                if (note.tags.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        note.tags.take(3).forEach { tag ->
+                            Surface(
+                                color = noteColor.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "#$tag",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = noteColor,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
+                }
+            } else {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Key,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Encrypted Note",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
                 }
             }
         }

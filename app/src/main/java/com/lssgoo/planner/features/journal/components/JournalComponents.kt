@@ -185,3 +185,43 @@ fun MoodDistributionChart(entries: List<JournalEntry>) {
         }
     }
 }
+
+@Composable
+fun MoodTimeline(entries: List<JournalEntry>) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Mood Timeline", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Simple vertical timeline
+        entries.sortedByDescending { it.date }.take(10).forEach { entry ->
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Time
+                val dateFormat = java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault())
+                Text(
+                    text = dateFormat.format(java.util.Date(entry.date)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(60.dp)
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                // Mood Emoji
+                Text(text = entry.mood.emoji, fontSize = 20.sp)
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                // Title
+                Text(
+                    text = entry.title.ifBlank { "Journal Entry" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}

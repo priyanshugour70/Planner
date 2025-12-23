@@ -82,6 +82,9 @@ fun PlannerApp(rootViewModel: PlannerViewModel) {
         window.statusBarColor = statusBarColor.toArgb()
     }
     
+    
+    val settings by rootViewModel.settings.collectAsState()
+    
     if (!isOnboardingComplete) {
         OnboardingScreen(viewModel = rootViewModel)
     } else {
@@ -184,7 +187,18 @@ fun PlannerApp(rootViewModel: PlannerViewModel) {
                 }
 
                 composable(Routes.SETTINGS) {
-                    SettingsScreen(viewModel = rootViewModel, onBack = { navController.popBackStack() })
+                    SettingsScreen(
+                        viewModel = rootViewModel,
+                        onBack = { navController.popBackStack() },
+                        onNavigateToPin = { navController.navigate(Routes.APPLOCK) }
+                    )
+                }
+                
+                composable(Routes.APPLOCK) {
+                    com.lssgoo.planner.features.settings.screens.PinLockScreen(
+                        viewModel = rootViewModel,
+                        onUnlockSuccess = { navController.popBackStack() }
+                    )
                 }
                 
                 composable(Routes.HABITS) {

@@ -24,6 +24,10 @@ data class Note(
     val reminderRepeatType: RepeatType = RepeatType.NONE,
     val isReminderEnabled: Boolean = true,
     val notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+    val isLocked: Boolean = false,
+    val category: String = "General",
+    val mood: String = "Neutral",
+    val lastEditedBy: String = "User",
     // Recall features
     val recallIntervals: List<Long> = emptyList(), // Spaced repetition intervals
     val nextRecallDate: Long? = null,

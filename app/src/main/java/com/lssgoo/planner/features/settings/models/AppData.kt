@@ -63,7 +63,8 @@ data class AppSettings(
     val dailyReminderTime: String = "08:00",
     val weeklyReviewDay: Int = 0, // 0 = Sunday
     val userName: String = "",
-    val profileImageUrl: String = ""
+    val profileImageUrl: String = "",
+    val pinCode: String? = null // Encrypted or plain PIN for App Lock
 )
 
 /**
@@ -77,5 +78,7 @@ data class DashboardStats(
     val totalTasksToday: Int = 0,
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
-    val overallProgress: Float = 0f
+    val overallProgress: Float = 0f,
+    val totalHabitsToday: Int = 0,
+    val habitsCompletedToday: Int = 0
 )

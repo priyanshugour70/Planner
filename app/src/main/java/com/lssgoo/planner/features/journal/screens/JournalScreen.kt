@@ -23,6 +23,7 @@ import com.lssgoo.planner.data.model.Goal
 import com.lssgoo.planner.features.journal.components.JournalPromptCard
 import com.lssgoo.planner.features.journal.components.MoodCalendar
 import com.lssgoo.planner.features.journal.components.MoodDistributionChart
+import com.lssgoo.planner.features.journal.components.MoodTimeline
 import com.lssgoo.planner.features.journal.models.JournalEntry
 import com.lssgoo.planner.features.journal.models.JournalMood
 import com.lssgoo.planner.ui.components.EmptyState
@@ -102,6 +103,7 @@ fun JournalScreen(
                     Column {
                         MoodDistributionChart(entries)
                         MoodCalendar(entries)
+                        MoodTimeline(entries)
                     }
                 }
             }
@@ -272,6 +274,7 @@ fun AddJournalEntryDialog(
     var gratitude2 by remember { mutableStateOf("") }
     var win1 by remember { mutableStateOf("") }
     var challenge1 by remember { mutableStateOf("") }
+    var tagsInput by remember { mutableStateOf("") }
     
     // Linking
     var selectedGoalId by remember { mutableStateOf<String?>(null) }
@@ -368,6 +371,16 @@ fun AddJournalEntryDialog(
                     )
                 }
                 
+                item {
+                    OutlinedTextField(
+                        value = tagsInput,
+                        onValueChange = { tagsInput = it },
+                        label = { Text("Tags (comma separated)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(Icons.Default.Label, null) }
+                    )
+                }
+                
                 // 5. Attachments
                 item {
                     Divider()
@@ -414,6 +427,7 @@ fun AddJournalEntryDialog(
                     )
                     val wins = listOfNotNull(win1.ifBlank { null })
                     val challenges = listOfNotNull(challenge1.ifBlank { null })
+                    val tags = tagsInput.split(",").map { it.trim() }.filter { it.isNotBlank() }
                     val photos = if (hasPhoto) listOf("mock_photo_uri") else emptyList()
                     val linkedGoals = if (selectedGoalId != null) listOf(selectedGoalId!!) else emptyList()
                     
@@ -426,6 +440,7 @@ fun AddJournalEntryDialog(
                             gratitude = gratitudes,
                             achievements = wins,
                             challenges = challenges,
+                            tags = tags,
                             photos = photos,
                             linkedGoalIds = linkedGoals
                         )
