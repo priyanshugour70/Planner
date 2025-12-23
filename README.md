@@ -1,4 +1,4 @@
-# Goal 2026 📱
+# Planner 📱
 
 A comprehensive Android application built with Jetpack Compose to help you track and achieve your goals for 2026. Manage your goals, tasks, notes, and calendar events all in one beautiful, modern interface.
 

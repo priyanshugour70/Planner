@@ -26,9 +26,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../release-key.jks")
+            storeFile = file("../planner.jks")
             storePassword = keystoreProperties["storePassword"] as String? ?: System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = keystoreProperties["keyAlias"] as String? ?: "goal2026-key"
+            keyAlias = keystoreProperties["keyAlias"] as String? ?: "planner"
             keyPassword = keystoreProperties["keyPassword"] as String? ?: System.getenv("KEY_PASSWORD")
         }
     }

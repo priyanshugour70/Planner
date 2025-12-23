@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Goal 2026"
+rootProject.name = "Planner"
 include(":app")
