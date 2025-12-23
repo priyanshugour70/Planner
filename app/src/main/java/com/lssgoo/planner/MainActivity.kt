@@ -7,8 +7,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -65,7 +73,7 @@ fun PlannerApp(rootViewModel: PlannerViewModel) {
     // Status bar theme sync
     val view = LocalView.current
     val statusBarColor = MaterialTheme.colorScheme.background
-    val isDarkTheme = MaterialTheme.colorScheme.background == androidx.compose.ui.graphics.Color.Black
+    val isDarkTheme = statusBarColor == Color.Black || statusBarColor.toArgb() == Color(0xFF1C1B1F).toArgb() // More robust check
     
     LaunchedEffect(currentRoute, statusBarColor, isDarkTheme) {
         val window = (view.context as android.app.Activity).window
@@ -82,14 +90,56 @@ fun PlannerApp(rootViewModel: PlannerViewModel) {
     } else {
         val showBottomBar = currentRoute in BottomNavDestination.entries.map { it.route }
         
+        val haptic = LocalHapticFeedback.current
+        val destinations = BottomNavDestination.entries
+
         Scaffold(
             bottomBar = { if (showBottomBar) DynamicBottomNavBar(navController, currentRoute) },
             contentWindowInsets = WindowInsets(0, 0, 0, 0) // Fully controlled space
         ) { paddingValues ->
+            var dragOffset by remember { mutableStateOf(0f) }
+            
             NavHost(
                 navController = navController,
                 startDestination = Routes.DASHBOARD,
-                modifier = Modifier.fillMaxSize().padding(paddingValues)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .pointerInput(currentRoute) {
+                        if (!showBottomBar) return@pointerInput
+                        
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (dragOffset > 150f) {
+                                    // Swipe Right -> Go Left
+                                    val currentIndex = destinations.indexOfFirst { it.route == currentRoute }
+                                    if (currentIndex > 0) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        navController.navigate(destinations[currentIndex - 1].route) {
+                                            popUpTo(Routes.DASHBOARD) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                } else if (dragOffset < -150f) {
+                                    // Swipe Left -> Go Right
+                                    val currentIndex = destinations.indexOfFirst { it.route == currentRoute }
+                                    if (currentIndex != -1 && currentIndex < destinations.size - 1) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        navController.navigate(destinations[currentIndex + 1].route) {
+                                            popUpTo(Routes.DASHBOARD) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                }
+                                dragOffset = 0f
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                dragOffset += dragAmount
+                            }
+                        )
+                    }
             ) {
                 composable(Routes.DASHBOARD) {
                     DashboardScreen(

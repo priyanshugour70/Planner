@@ -1,6 +1,7 @@
 package com.lssgoo.planner.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,8 +21,12 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import com.lssgoo.planner.ui.navigation.BottomNavDestination
 import com.lssgoo.planner.ui.navigation.Routes
@@ -49,6 +55,7 @@ fun DynamicBottomNavBar(
         scrollState.animateScrollTo(currentIndex * 70)
     }
     
+    val haptic = LocalHapticFeedback.current
     val canScrollLeft by remember { derivedStateOf { scrollState.value > 0 } }
     val canScrollRight by remember { derivedStateOf { scrollState.canScrollForward } }
 
@@ -66,7 +73,7 @@ fun DynamicBottomNavBar(
                     ambientColor = accentColor.copy(alpha = 0.2f),
                     spotColor = accentColor.copy(alpha = 0.2f)
                 ),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
             )
@@ -74,7 +81,7 @@ fun DynamicBottomNavBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left Chevron
@@ -83,10 +90,11 @@ fun DynamicBottomNavBar(
                     enter = fadeIn() + expandHorizontally(),
                     exit = fadeOut() + shrinkHorizontally()
                 ) {
-                    Box(modifier = Modifier.width(32.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
                         IconButton(
                             onClick = {
                                 if (currentIndex > 0) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     navController.navigate(destinations[currentIndex - 1].route) {
                                         popUpTo(Routes.DASHBOARD) { saveState = true }
                                         launchSingleTop = true
@@ -94,13 +102,13 @@ fun DynamicBottomNavBar(
                                     }
                                 }
                             },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
                                 Icons.Default.ChevronLeft,
                                 null,
                                 tint = accentColor.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -140,10 +148,11 @@ fun DynamicBottomNavBar(
                     enter = fadeIn() + expandHorizontally(),
                     exit = fadeOut() + shrinkHorizontally()
                 ) {
-                    Box(modifier = Modifier.width(32.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
                         IconButton(
                             onClick = {
                                 if (currentIndex < destinations.size - 1) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     navController.navigate(destinations[currentIndex + 1].route) {
                                         popUpTo(Routes.DASHBOARD) { saveState = true }
                                         launchSingleTop = true
@@ -151,13 +160,13 @@ fun DynamicBottomNavBar(
                                     }
                                 }
                             },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
                                 Icons.Default.ChevronRight,
                                 null,
                                 tint = accentColor.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -174,12 +183,27 @@ fun DynamicNavItem(
     accentColor: Color,
     onClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+    val iconSize by animateDpAsState(
+        targetValue = if (isSelected) 30.dp else 26.dp,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
+    )
+    
+    val containerScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f)
+    )
+    
     Box(
         modifier = Modifier
+            .graphicsLayer(scaleX = containerScale, scaleY = containerScale)
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) accentColor.copy(alpha = 0.12f) else Color.Transparent)
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .clickable { 
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick() 
+            }
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -188,17 +212,21 @@ fun DynamicNavItem(
             Icon(
                 imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
                 contentDescription = destination.label,
-                tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(if (isSelected) 22.dp else 20.dp)
+                tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(iconSize)
             )
             
-            AnimatedVisibility(visible = isSelected) {
+            AnimatedVisibility(
+                visible = isSelected,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally()
+            ) {
                 Text(
                     text = destination.label,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = accentColor,
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier.padding(start = 6.dp)
                 )
             }
         }
