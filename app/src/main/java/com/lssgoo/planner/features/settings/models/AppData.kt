@@ -1,6 +1,7 @@
 package com.lssgoo.planner.features.settings.models
 
 import com.lssgoo.planner.data.model.*
+import com.lssgoo.planner.features.habits.models.*
 
 /**
  * Complete app data for backup/restore functionality

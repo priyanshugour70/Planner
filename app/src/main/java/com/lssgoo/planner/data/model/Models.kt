@@ -22,10 +22,7 @@ typealias CalendarEvent = com.lssgoo.planner.features.tasks.models.CalendarEvent
 typealias Note = com.lssgoo.planner.features.notes.models.Note
 
 // Re-export Habits models
-typealias Habit = com.lssgoo.planner.features.habits.models.Habit
-typealias HabitEntry = com.lssgoo.planner.features.habits.models.HabitEntry
-typealias HabitStats = com.lssgoo.planner.features.habits.models.HabitStats
-typealias HabitFrequency = com.lssgoo.planner.features.habits.models.HabitFrequency
+// Removed to avoid ambiguity with main package imports
 
 // Re-export Journal models  
 typealias JournalEntry = com.lssgoo.planner.features.journal.models.JournalEntry

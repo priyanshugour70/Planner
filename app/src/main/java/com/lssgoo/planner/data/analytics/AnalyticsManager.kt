@@ -2,6 +2,7 @@ package com.lssgoo.planner.data.analytics
 
 import com.lssgoo.planner.data.local.LocalStorageManager
 import com.lssgoo.planner.data.model.*
+import com.lssgoo.planner.features.habits.models.*
 import java.util.*
 
 /**
@@ -114,7 +115,7 @@ class AnalyticsManager(
         entries: List<HabitEntry>
     ): List<HabitStreakData> {
         return habits.map { habit ->
-            val habitEntries = entries.filter { it.goalId == habit.goalId && it.isCompleted }
+            val habitEntries = entries.filter { it.habitId == habit.id && it.isCompleted }
             val currentStreak = calculateCurrentStreak(habitEntries)
             val longestStreak = calculateLongestStreak(habitEntries)
             val totalDays = getDaysSinceCreation(habit.createdAt)

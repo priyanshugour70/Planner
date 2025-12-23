@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lssgoo.planner.data.model.*
+import com.lssgoo.planner.features.habits.models.*
 
 /**
  * LocalStorageManager handles all data persistence using SharedPreferences
@@ -203,32 +204,7 @@ class LocalStorageManager(context: Context) {
         return getEvents().filter { it.date in dayStart..dayEnd }
     }
     
-    // ======================== HABIT ENTRIES ========================
-    
-    fun saveHabitEntries(entries: List<HabitEntry>) {
-        val json = gson.toJson(entries)
-        prefs.edit().putString(KEY_HABITS, json).apply()
-    }
-    
-    fun getHabitEntries(): List<HabitEntry> {
-        val json = prefs.getString(KEY_HABITS, null) ?: return emptyList()
-        val type = object : TypeToken<List<HabitEntry>>() {}.type
-        return try {
-            gson.fromJson(json, type)
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-    
-    fun addHabitEntry(entry: HabitEntry) {
-        val entries = getHabitEntries().toMutableList()
-        // Remove existing entry for same date and goal
-        entries.removeAll { 
-            getStartOfDay(it.date) == getStartOfDay(entry.date) && it.goalId == entry.goalId 
-        }
-        entries.add(entry)
-        saveHabitEntries(entries)
-    }
+
     
     // ======================== SETTINGS ========================
     
@@ -509,7 +485,7 @@ class LocalStorageManager(context: Context) {
         val habits = getHabits().toMutableList()
         val index = habits.indexOfFirst { it.id == habit.id }
         if (index != -1) {
-            habits[index] = habit.copy(updatedAt = System.currentTimeMillis())
+            habits[index] = habit
         } else {
             habits.add(habit)
         }
@@ -521,14 +497,66 @@ class LocalStorageManager(context: Context) {
         saveHabits(habits)
     }
     
-    fun getHabitEntriesForGoal(goalId: String): List<HabitEntry> {
-        return getHabitEntries().filter { it.goalId == goalId }
-    }
-    
     fun getHabitEntriesForDateRange(startDate: Long, endDate: Long): List<HabitEntry> {
         return getHabitEntries().filter { 
-            it.date >= startDate && it.date <= endDate 
+             it.date >= startDate && it.date <= endDate 
         }
+    }
+    
+    fun getHabitEntries(habitId: String): List<HabitEntry> {
+        return getHabitEntries().filter { it.habitId == habitId }
+    }
+    
+    fun getHabitEntriesForDate(date: Long): List<HabitEntry> {
+        val start = getStartOfDay(date)
+        return getHabitEntries().filter { getStartOfDay(it.date) == start }
+    }
+    
+    fun deleteHabitEntry(entryId: String) {
+        val entries = getHabitEntries().toMutableList()
+        val entry = entries.find { it.id == entryId }
+        if (entry != null) {
+            entries.remove(entry)
+            saveHabitEntries(entries)
+        }
+    }
+    
+    // ======================== HABIT ENTRIES ========================
+    
+    fun saveHabitEntries(entries: List<HabitEntry>) {
+        val json = gson.toJson(entries)
+        prefs.edit().putString(KEY_HABITS, json).apply()
+    }
+    
+    fun getHabitEntries(): List<HabitEntry> {
+        val json = prefs.getString(KEY_HABITS, null) ?: return emptyList()
+        val type = object : TypeToken<List<HabitEntry>>() {}.type
+        return try {
+            gson.fromJson(json, type)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    fun addHabitEntry(entry: HabitEntry) {
+        val entries = getHabitEntries().toMutableList()
+        // Remove existing entry for same date and habit
+        entries.removeAll { 
+            getStartOfDay(it.date) == getStartOfDay(entry.date) && it.habitId == entry.habitId 
+        }
+        entries.add(entry)
+        saveHabitEntries(entries)
+    }
+
+    fun updateHabitEntry(entry: HabitEntry) {
+        val entries = getHabitEntries().toMutableList()
+        val index = entries.indexOfFirst { it.id == entry.id }
+        if (index != -1) {
+            entries[index] = entry
+        } else {
+            entries.add(entry)
+        }
+        saveHabitEntries(entries)
     }
     
     // ======================== JOURNAL ========================
