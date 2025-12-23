@@ -12,6 +12,7 @@ import com.amazonaws.services.s3.model.S3Object
 import com.lssgoo.planner.util.DeviceUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.lssgoo.planner.data.AppConstants
 import com.lssgoo.planner.BuildConfig
 import java.io.ByteArrayInputStream
 import java.io.InputStream
