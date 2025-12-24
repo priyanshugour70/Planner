@@ -3,6 +3,8 @@ package com.lssgoo.planner.ui.components.image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,11 +26,20 @@ actual fun S3ImagePicker(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (currentImageUrl != null) {
-            Text("Image: $currentImageUrl")
+            // Placeholder for image loading (Coil not available in KMP common yet for this version)
+             Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = shape,
+                modifier = Modifier.matchParentSize()
+            ) {
+                 Box(contentAlignment = Alignment.Center) {
+                     Text("📸 View Image", style = MaterialTheme.typography.bodySmall)
+                 }
+            }
         } else {
             placeholder()
         }
-        Text("iOS Upload TODO")
+        // TODO: Implement UIImagePickerController
     }
 }
 
@@ -46,9 +57,25 @@ actual fun RectangularImagePicker(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
          if (currentImageUrl != null) {
-            Text("Image: $currentImageUrl")
+              Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(cornerRadius),
+                modifier = Modifier.matchParentSize()
+            ) {
+                 Box(contentAlignment = Alignment.Center) {
+                     Text("📸 View Image", style = MaterialTheme.typography.bodySmall)
+                 }
+            }
         } else {
-            Text("Tap to add image (iOS TODO)")
+             Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(cornerRadius),
+                modifier = Modifier.matchParentSize()
+            ) {
+                 Box(contentAlignment = Alignment.Center) {
+                     Text("Tap to add image", style = MaterialTheme.typography.bodyMedium)
+                 }
+            }
         }
     }
 }
