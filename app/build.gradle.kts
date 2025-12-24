@@ -98,6 +98,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.aws.android.sdk.s3)
     implementation(libs.aws.android.sdk.core)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.coil.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

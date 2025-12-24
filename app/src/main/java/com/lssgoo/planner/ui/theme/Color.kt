@@ -94,6 +94,46 @@ val midnightBackground = Color(0xFF000000)
 val midnightSurface = Color(0xFF121212)
 val midnightOnSurface = Color(0xFFEDE7F6)
 
+// ROSE GOLD THEME (Elegant Warm Tones)
+val roseGoldPrimary = Color(0xFFB76E79)
+val roseGoldSecondary = Color(0xFFD4A5A5)
+val roseGoldTertiary = Color(0xFFE8C8C8)
+val roseGoldBackground = Color(0xFFFFF5F5)
+val roseGoldSurface = Color(0xFFFFECEC)
+val roseGoldOnSurface = Color(0xFF5D3A3A)
+
+// NORD THEME (Arctic Blues - Popular Dev Theme)
+val nordPrimary = Color(0xFF88C0D0)
+val nordSecondary = Color(0xFF81A1C1)
+val nordTertiary = Color(0xFF5E81AC)
+val nordBackground = Color(0xFF2E3440)
+val nordSurface = Color(0xFF3B4252)
+val nordOnSurface = Color(0xFFECEFF4)
+
+// SOLARIZED THEME (Classic Developer Theme)
+val solarizedPrimary = Color(0xFF268BD2)
+val solarizedSecondary = Color(0xFF2AA198)
+val solarizedTertiary = Color(0xFF859900)
+val solarizedBackground = Color(0xFF002B36)
+val solarizedSurface = Color(0xFF073642)
+val solarizedOnSurface = Color(0xFF839496)
+
+// LAVENDER THEME (Soft Purples)
+val lavenderPrimary = Color(0xFF9775FA)
+val lavenderSecondary = Color(0xFFB197FC)
+val lavenderTertiary = Color(0xFFD0BFFF)
+val lavenderBackground = Color(0xFFF8F5FF)
+val lavenderSurface = Color(0xFFF0EBFF)
+val lavenderOnSurface = Color(0xFF4A3B6B)
+
+// MOCHA THEME (Warm Coffee Tones - Catppuccin Inspired)
+val mochaPrimary = Color(0xFFF5C2E7)
+val mochaSecondary = Color(0xFFCBA6F7)
+val mochaTertiary = Color(0xFFF38BA8)
+val mochaBackground = Color(0xFF1E1E2E)
+val mochaSurface = Color(0xFF313244)
+val mochaOnSurface = Color(0xFFCDD6F4)
+
 // Goal Category Colors - Black, White, Light Blue variants
 object GoalColors {
     val health = Color(0xFF26C6DA)  // Light Blue Cyan
@@ -174,6 +214,11 @@ object ThemePreviewColors {
     val sunset = Color(0xFFE91E63)  // Pink
     val forest = Color(0xFF2E7D32)  // Green
     val midnight = Color(0xFF7E57C2)  // Purple
+    val roseGold = Color(0xFFB76E79)  // Rose Gold
+    val nord = Color(0xFF88C0D0)  // Arctic Blue
+    val solarized = Color(0xFF268BD2)  // Solarized Blue
+    val lavender = Color(0xFF9775FA)  // Lavender Purple
+    val mocha = Color(0xFFF5C2E7)  // Mocha Pink
 }
 
 object NoteColors {

@@ -13,6 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.border
+import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.*
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -213,124 +216,345 @@ fun AddHabitDialog(
     var selectedIcon by remember { mutableStateOf("✨") }
 
     val icons = listOf("✨", "💧", "📚", "💪", "🧘", "💊", "💰", "🏃", "🍳", "💤")
-    val colors = listOf(0xFFF44336, 0xFFE91E63, 0xFF9C27B0, 0xFF2196F3, 0xFF4CAF50, 0xFFFFC107, 0xFFFF5722)
+    val colors = listOf(0xFFF44336, 0xFFE91E63, 0xFF9C27B0, 0xFF2196F3, 0xFF4CAF50, 0xFFFFC107, 0xFFFF5722, 0xFF00BCD4)
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create New Habit") },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedTextField(
-                    value = title, 
-                    onValueChange = { title = it }, 
-                    label = { Text("Title (e.g., Read Book)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                // Type Selector
-                Text("Type", style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HabitType.entries.forEach { type ->
-                        FilterChip(
-                            selected = selectedType == type,
-                            onClick = { selectedType = type },
-                            label = { Text(type.name.replace("_", " ")) }
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .heightIn(max = 650.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column {
+                // Header with gradient
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.tertiary
+                                )
+                            )
                         )
-                    }
-                }
-                
-                if (selectedType != HabitType.YES_NO) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = targetValue,
-                            onValueChange = { if(it.all { c -> c.isDigit() }) targetValue = it },
-                            label = { Text("Target") },
-                            modifier = Modifier.weight(1f)
-                        )
-                        OutlinedTextField(
-                            value = unit,
-                            onValueChange = { unit = it },
-                            label = { Text("Unit (e.g. pages)") },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                // Time of Day
-                Text("Time of Day", style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HabitTimeOfDay.entries.forEach { time ->
-                        FilterChip(
-                           selected = selectedTime == time,
-                           onClick = { selectedTime = time },
-                           label = { Text(time.displayName.take(7) + "..") } // Compact
-                        )
-                    }
-                }
-                
-                // Icon Picker
-                Text("Icon", style = MaterialTheme.typography.labelMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(icons) { icon ->
-                        FilterChip(selected = selectedIcon == icon, onClick = { selectedIcon = icon }, label = { Text(icon) })
-                    }
-                }
-                
-                // Color Picker - Simple Circles
-                Text("Color", style = MaterialTheme.typography.labelMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(colors) { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color(color))
-                                .clickable { selectedColor = color }
+                        .padding(24.dp)
+                ) {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (selectedColor == color) {
-                                Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.align(Alignment.Center))
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color.White.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(selectedIcon, fontSize = 24.sp)
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    "Create New Habit",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "Build better routines",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
                             }
                         }
                     }
                 }
                 
-                // Goal Link
-                Text("Link to Goal (Optional)", style = MaterialTheme.typography.labelMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(goals) { goal ->
-                        FilterChip(
-                            selected = selectedGoalId == goal.id,
-                            onClick = { selectedGoalId = if (selectedGoalId == goal.id) null else goal.id },
-                            label = { Text(goal.title) }
+                // Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Title Input
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Habit Title") },
+                        placeholder = { Text("e.g., Read for 30 minutes") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         )
+                    )
+                    
+                    // Type Selector Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Habit Type",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            HabitType.entries.forEach { type ->
+                                val isSelected = selectedType == type
+                                Surface(
+                                    onClick = { selectedType = type },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.widthIn(min = 100.dp)
+                                ) {
+                                    Text(
+                                        text = when(type) {
+                                            HabitType.YES_NO -> "Yes / No"
+                                            HabitType.QUANTITATIVE -> "Quantitative"
+                                            HabitType.TIMER -> "Timer"
+                                        },
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Target value for non-YES_NO types
+                    if (selectedType != HabitType.YES_NO) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = targetValue,
+                                onValueChange = { if(it.all { c -> c.isDigit() }) targetValue = it },
+                                label = { Text("Target") },
+                                placeholder = { Text("30") },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            OutlinedTextField(
+                                value = unit,
+                                onValueChange = { unit = it },
+                                label = { Text("Unit") },
+                                placeholder = { Text("pages, mins") },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                        }
+                    }
+
+                    // Time of Day Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Time of Day",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            HabitTimeOfDay.entries.forEach { time ->
+                                val isSelected = selectedTime == time
+                                Surface(
+                                    onClick = { selectedTime = time },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.widthIn(min = 90.dp)
+                                ) {
+                                    Text(
+                                        text = time.displayName,
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Icon Picker Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Choose Icon",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            icons.forEach { icon ->
+                                val isSelected = selectedIcon == icon
+                                Surface(
+                                    onClick = { selectedIcon = icon },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(
+                                        2.dp, MaterialTheme.colorScheme.primary
+                                    ) else null,
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(icon, fontSize = 22.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Color Picker Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Choose Color",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            colors.forEach { color ->
+                                val isSelected = selectedColor == color
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(color))
+                                        .then(
+                                            if (isSelected) Modifier.border(
+                                                3.dp, 
+                                                MaterialTheme.colorScheme.onSurface, 
+                                                CircleShape
+                                            ) else Modifier
+                                        )
+                                        .clickable { selectedColor = color },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            Icons.Default.Check, 
+                                            null, 
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Goal Link Section (Optional)
+                    if (goals.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(
+                                "Link to Goal (Optional)",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                goals.forEach { goal ->
+                                    val isSelected = selectedGoalId == goal.id
+                                    Surface(
+                                        onClick = { selectedGoalId = if (selectedGoalId == goal.id) null else goal.id },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                    ) {
+                                        Text(
+                                            text = goal.title,
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Action Buttons
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            onAdd(Habit(
+                                title = title,
+                                goalId = selectedGoalId,
+                                type = selectedType,
+                                targetValue = targetValue.toFloatOrNull() ?: 1f,
+                                unit = unit.ifBlank { null },
+                                timeOfDay = selectedTime,
+                                icon = selectedIcon,
+                                iconColor = selectedColor
+                            ))
+                        },
+                        enabled = title.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Create Habit")
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onAdd(Habit(
-                        title = title,
-                        goalId = selectedGoalId,
-                        type = selectedType,
-                        targetValue = targetValue.toFloatOrNull() ?: 1f,
-                        unit = unit.ifBlank { null },
-                        timeOfDay = selectedTime,
-                        icon = selectedIcon,
-                        iconColor = selectedColor
-                    ))
-                },
-                enabled = title.isNotEmpty()
-            ) {
-                Text("Create Habit")
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
+        }
+    }
 }
 
 private fun getStartOfDay(timestamp: Long): Long {

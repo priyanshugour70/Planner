@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lssgoo.planner.data.model.Note
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -378,36 +379,17 @@ fun NoteDetailScreen(
     
     // Delete Confirmation
     if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            icon = {
-                Icon(
-                    Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
+        QuickConfirmDialog(
+            onDismiss = { showDeleteConfirm = false },
+            onConfirm = {
+                viewModel.deleteNote(note.id)
+                showDeleteConfirm = false
+                onBack()
             },
-            title = { Text("Delete Note?") },
-            text = { Text("This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteNote(note.id)
-                        showDeleteConfirm = false
-                        onBack()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
-                }
-            }
+            title = "Delete Note?",
+            message = "This action cannot be undone. Are you sure you want to delete this note?",
+            isDestructive = true,
+            confirmText = "Delete Permanently"
         )
     }
 }

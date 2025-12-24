@@ -84,4 +84,7 @@ object AppIcons {
     val SettingsBackupRestore = Icons.Default.SettingsBackupRestore
     val Info = Icons.Default.Info
     val Assessment = Icons.Default.Assessment
+    val AccountBalanceWallet = Icons.Default.AccountBalanceWallet
+    val Payments = Icons.Default.Payments
+    val DonutLarge = Icons.Default.DonutLarge
 }

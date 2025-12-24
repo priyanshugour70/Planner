@@ -36,7 +36,12 @@ enum class ThemeMode(val value: String) {
     OCEAN("OCEAN"),
     SUNSET("SUNSET"),
     FOREST("FOREST"),
-    MIDNIGHT("MIDNIGHT");
+    MIDNIGHT("MIDNIGHT"),
+    ROSE_GOLD("ROSE_GOLD"),
+    NORD("NORD"),
+    SOLARIZED("SOLARIZED"),
+    LAVENDER("LAVENDER"),
+    MOCHA("MOCHA");
     
     companion object {
         fun fromString(value: String?): ThemeMode {
@@ -48,6 +53,11 @@ enum class ThemeMode(val value: String) {
                 "SUNSET" -> SUNSET
                 "FOREST" -> FOREST
                 "MIDNIGHT" -> MIDNIGHT
+                "ROSE_GOLD" -> ROSE_GOLD
+                "NORD" -> NORD
+                "SOLARIZED" -> SOLARIZED
+                "LAVENDER" -> LAVENDER
+                "MOCHA" -> MOCHA
                 else -> SYSTEM // Default to SYSTEM
             }
         }

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lssgoo.planner.features.habits.models.*
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -399,36 +400,17 @@ fun HabitDetailScreen(
     
     // Delete Confirmation
     if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            icon = {
-                Icon(
-                    Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
+        QuickConfirmDialog(
+            onDismiss = { showDeleteConfirm = false },
+            onConfirm = {
+                // Delete habit logic would go here
+                showDeleteConfirm = false
+                onBack()
             },
-            title = { Text("Delete Habit?") },
-            text = { Text("This will delete the habit and all its history. This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        // Delete habit logic would go here
-                        showDeleteConfirm = false
-                        onBack()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
-                }
-            }
+            title = "Delete Habit?",
+            message = "This will delete the habit and all its history. This action cannot be undone.",
+            isDestructive = true,
+            confirmText = "Delete Permanently"
         )
     }
     

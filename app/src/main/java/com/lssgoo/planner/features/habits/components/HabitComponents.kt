@@ -23,6 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lssgoo.planner.features.habits.models.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.Dialog
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -223,68 +231,191 @@ fun HabitInteractionDialog(
 ) {
     var value by remember { mutableFloatStateOf(0f) }
     var selectedMood by remember { mutableStateOf<HabitMood?>(null) }
-    
-    // Timer state logic would go here for TIMER type
-    
-    AlertDialog(
+    val habitColor = Color(habit.iconColor)
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(habit.icon)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(habit.title)
-            }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                if (habit.type == HabitType.QUANTITATIVE) {
-                    Text("How much did you do today?")
-                    OutlinedTextField(
-                        value = if(value == 0f) "" else value.toString(),
-                        onValueChange = { value = it.toFloatOrNull() ?: 0f },
-                        label = { Text("Value (${habit.unit ?: "units"})") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else if (habit.type == HabitType.TIMER) {
-                    Text("Did you complete ${habit.targetValue.toInt()} mins?")
-                    // Simplified for now
-                } else {
-                    Text("Completed!")
-                }
-                
-                Text("How do you feel?", style = MaterialTheme.typography.labelMedium)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column {
+                // Gradient Header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    habitColor,
+                                    habitColor.copy(alpha = 0.7f)
+                                )
+                            )
+                        )
+                        .padding(24.dp)
                 ) {
-                    HabitMood.entries.forEach { mood ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { selectedMood = mood }
-                                .background(if (selectedMood == mood) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                                .padding(8.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Text(mood.emoji, fontSize = 24.sp)
-                            Text(mood.label, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp)
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(habit.icon, fontSize = 24.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                habit.title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                "Log your progress for today",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // 1. Progress Input
+                    if (habit.type == HabitType.QUANTITATIVE) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "How much completed?",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            OutlinedTextField(
+                                value = if (value == 0f) "" else value.toString(),
+                                onValueChange = { value = it.toFloatOrNull() ?: 0f },
+                                label = { Text("Value (${habit.unit ?: "units"})") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal
+                                )
+                            )
+                        }
+                    } else if (habit.type == HabitType.TIMER) {
+                        Surface(
+                            color = habitColor.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Timer, null, tint = habitColor)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    "Log ${habit.targetValue.toInt()} mins session",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            color = Color(0xFF4CAF50).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF4CAF50))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    "Marking as completed",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    // 2. Mood Selection
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "How do you feel about this?",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            HabitMood.entries.forEach { mood ->
+                                val isSelected = selectedMood == mood
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Surface(
+                                        onClick = { selectedMood = mood },
+                                        modifier = Modifier.size(50.dp),
+                                        shape = CircleShape,
+                                        color = if (isSelected) habitColor.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                        border = if (isSelected) BorderStroke(2.dp, habitColor) else null
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(mood.emoji, fontSize = 24.sp)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        mood.label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isSelected) habitColor else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 3. Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                val finalVal = if (habit.type == HabitType.YES_NO) 1f else value
+                                onConfirm(finalVal, selectedMood)
+                            },
+                            modifier = Modifier.weight(1.5f).height(52.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = habitColor)
+                        ) {
+                            Text("Save Entry")
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { 
-                    val finalVal = if(habit.type == HabitType.YES_NO) 1f else value
-                    onConfirm(finalVal, selectedMood) 
-                }
-            ) {
-                Text("Save Entry")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
-    )
+    }
 }

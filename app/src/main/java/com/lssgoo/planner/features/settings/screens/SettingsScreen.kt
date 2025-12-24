@@ -42,6 +42,13 @@ import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.BorderStroke
+import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,6 +187,11 @@ fun SettingsScreen(
                             ThemeMode.SUNSET -> "Sunset Glow"
                             ThemeMode.FOREST -> "Forest Green"
                             ThemeMode.MIDNIGHT -> "Midnight Purple"
+                            ThemeMode.ROSE_GOLD -> "Rose Gold ✨"
+                            ThemeMode.NORD -> "Nord Arctic"
+                            ThemeMode.SOLARIZED -> "Solarized"
+                            ThemeMode.LAVENDER -> "Lavender Dream"
+                            ThemeMode.MOCHA -> "Mocha Latte"
                         },
                         onClick = { showThemeDialog = true },
                         iconColor = MaterialTheme.colorScheme.primary
@@ -191,113 +203,184 @@ fun SettingsScreen(
                 
                 // Theme Selection Dialog
                 if (showThemeDialog) {
-                    AlertDialog(
+                    Dialog(
                         onDismissRequest = { showThemeDialog = false },
-                        icon = {
-                            Icon(
-                                Icons.Filled.Palette,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        title = { Text("Choose Your Vibe") },
-                        text = {
-                            LazyColumn(
-                                modifier = Modifier.heightIn(max = 400.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.BrightnessAuto,
-                                        title = "System Default",
-                                        isSelected = settings.themeMode == ThemeMode.SYSTEM,
-                                        colorPreview = MaterialTheme.colorScheme.outline,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.SYSTEM))
-                                            showThemeDialog = false
+                        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth(0.92f)
+                                .heightIn(max = 620.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 6.dp
+                        ) {
+                            Column {
+                                // Header
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    MaterialTheme.colorScheme.secondary
+                                                )
+                                            )
+                                        )
+                                        .padding(24.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.2f),
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Palette,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.padding(12.dp)
+                                            )
                                         }
-                                    )
-                                }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.LightMode,
-                                        title = "Classic Light",
-                                        isSelected = settings.themeMode == ThemeMode.LIGHT,
-                                        colorPreview = Color.White,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.LIGHT))
-                                            showThemeDialog = false
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                "Theme & Vibe",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                            Text(
+                                                "Personalize your experience",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White.copy(alpha = 0.8f)
+                                            )
                                         }
-                                    )
+                                    }
                                 }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.DarkMode,
-                                        title = "Classic Dark",
-                                        isSelected = settings.themeMode == ThemeMode.DARK,
-                                        colorPreview = Color.Black,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.DARK))
-                                            showThemeDialog = false
-                                        }
+
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .weight(1f, fill = false)
+                                        .padding(20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    item {
+                                        SectionTitle("System")
+                                        ThemeOption(
+                                            icon = Icons.Filled.BrightnessAuto,
+                                            title = "System Default",
+                                            isSelected = settings.themeMode == ThemeMode.SYSTEM,
+                                            colorPreview = MaterialTheme.colorScheme.outline,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.SYSTEM))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    
+                                    item { SectionTitle("Classic") }
+                                    item {
+                                        ThemeOption(
+                                            icon = Icons.Filled.LightMode,
+                                            title = "Classic Light",
+                                            isSelected = settings.themeMode == ThemeMode.LIGHT,
+                                            colorPreview = Color.White,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.LIGHT))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    item {
+                                        ThemeOption(
+                                            icon = Icons.Filled.DarkMode,
+                                            title = "Classic Dark",
+                                            isSelected = settings.themeMode == ThemeMode.DARK,
+                                            colorPreview = Color.Black,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.DARK))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    
+                                    item { SectionTitle("Nature") }
+                                    item {
+                                        ThemeOption(
+                                            icon = Icons.Filled.WaterDrop,
+                                            title = "Deep Ocean",
+                                            isSelected = settings.themeMode == ThemeMode.OCEAN,
+                                            colorPreview = ThemePreviewColors.ocean,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.OCEAN))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    item {
+                                        ThemeOption(
+                                            icon = Icons.Filled.WbSunny,
+                                            title = "Sunset Glow",
+                                            isSelected = settings.themeMode == ThemeMode.SUNSET,
+                                            colorPreview = ThemePreviewColors.sunset,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.SUNSET))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    item {
+                                        ThemeOption(
+                                            icon = Icons.Filled.Park,
+                                            title = "Forest Green",
+                                            isSelected = settings.themeMode == ThemeMode.FOREST,
+                                            colorPreview = ThemePreviewColors.forest,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = ThemeMode.FOREST))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
+                                    
+                                    item { SectionTitle("Premium ✨") }
+                                    val premiumThemes = listOf(
+                                        Triple(ThemeMode.MIDNIGHT, "Midnight Purple", ThemePreviewColors.midnight),
+                                        Triple(ThemeMode.ROSE_GOLD, "Rose Gold", ThemePreviewColors.roseGold),
+                                        Triple(ThemeMode.NORD, "Nord Arctic", ThemePreviewColors.nord),
+                                        Triple(ThemeMode.SOLARIZED, "Solarized", ThemePreviewColors.solarized),
+                                        Triple(ThemeMode.LAVENDER, "Lavender Dream", ThemePreviewColors.lavender),
+                                        Triple(ThemeMode.MOCHA, "Mocha Latte", ThemePreviewColors.mocha)
                                     )
+                                    
+                                    items(premiumThemes) { (mode, title, color) ->
+                                        ThemeOption(
+                                            icon = Icons.Filled.AutoAwesome,
+                                            title = title,
+                                            isSelected = settings.themeMode == mode,
+                                            colorPreview = color,
+                                            onClick = {
+                                                viewModel.updateSettings(settings.copy(themeMode = mode))
+                                                showThemeDialog = false
+                                            }
+                                        )
+                                    }
                                 }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.WaterDrop,
-                                        title = "Deep Ocean",
-                                        isSelected = settings.themeMode == ThemeMode.OCEAN,
-                                        colorPreview = ThemePreviewColors.ocean,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.OCEAN))
-                                            showThemeDialog = false
-                                        }
-                                    )
+                                
+                                Button(
+                                    onClick = { showThemeDialog = false },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp)
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Text("Done")
                                 }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.WbSunny,
-                                        title = "Sunset Glow",
-                                        isSelected = settings.themeMode == ThemeMode.SUNSET,
-                                        colorPreview = ThemePreviewColors.sunset,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.SUNSET))
-                                            showThemeDialog = false
-                                        }
-                                    )
-                                }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.Park,
-                                        title = "Forest Green",
-                                        isSelected = settings.themeMode == ThemeMode.FOREST,
-                                        colorPreview = ThemePreviewColors.forest,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.FOREST))
-                                            showThemeDialog = false
-                                        }
-                                    )
-                                }
-                                item {
-                                    ThemeOption(
-                                        icon = Icons.Filled.NightsStay,
-                                        title = "Midnight Purple",
-                                        isSelected = settings.themeMode == ThemeMode.MIDNIGHT,
-                                        colorPreview = ThemePreviewColors.midnight,
-                                        onClick = {
-                                            viewModel.updateSettings(settings.copy(themeMode = ThemeMode.MIDNIGHT))
-                                            showThemeDialog = false
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { showThemeDialog = false }) {
-                                Text("Cancel")
                             }
                         }
-                    )
+                    }
                 }
             }
             
@@ -322,15 +405,57 @@ fun SettingsScreen(
                 val isSyncing by viewModel.isSyncing.collectAsState()
                 val lastSyncTime by viewModel.lastSyncTime.collectAsState()
                 val lastSyncTimeValue = lastSyncTime // Store in local variable for smart cast
+                var showAutoSyncDialog by remember { mutableStateOf(false) }
+                
+                // Get auto sync manager
+                val autoSyncManager = remember { com.lssgoo.planner.data.sync.AutoSyncManager(context) }
+                var isAutoSyncEnabled by remember { mutableStateOf(autoSyncManager.isAutoSyncEnabled()) }
+                var currentInterval by remember { mutableStateOf(autoSyncManager.getSyncInterval()) }
                 
                 SettingsSection(
                     title = "Cloud Sync (AWS S3)",
                     icon = Icons.Filled.CloudSync
                 ) {
+                    // Auto Sync Toggle
+                    SettingsItemWithSwitch(
+                        icon = Icons.Filled.Autorenew,
+                        title = "Auto Sync",
+                        subtitle = if (isAutoSyncEnabled) {
+                            autoSyncManager.getIntervalDisplayName(currentInterval)
+                        } else {
+                            "Enable automatic background sync"
+                        },
+                        isChecked = isAutoSyncEnabled,
+                        onCheckedChange = { enabled ->
+                            isAutoSyncEnabled = enabled
+                            if (enabled) {
+                                autoSyncManager.enableAutoSync(currentInterval)
+                            } else {
+                                autoSyncManager.disableAutoSync()
+                            }
+                        },
+                        iconColor = MaterialTheme.colorScheme.tertiary
+                    )
+                    
+                    // Sync Interval (only visible when auto sync is enabled)
+                    if (isAutoSyncEnabled) {
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        
+                        SettingsItem(
+                            icon = Icons.Filled.Schedule,
+                            title = "Sync Interval",
+                            subtitle = autoSyncManager.getIntervalDisplayName(currentInterval),
+                            onClick = { showAutoSyncDialog = true },
+                            iconColor = GoalColors.lifestyle
+                        )
+                    }
+                    
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    
                     SettingsItem(
                         icon = Icons.Filled.CloudUpload,
-                        title = "Sync to Cloud",
-                        subtitle = if (lastSyncTimeValue != null) {
+                        title = "Sync to Cloud Now",
+                        subtitle = if (lastSyncTimeValue != null && lastSyncTimeValue > 0L) {
                             "Last synced: ${SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(lastSyncTimeValue))}"
                         } else {
                             "Upload your data to AWS S3"
@@ -372,6 +497,124 @@ fun SettingsScreen(
                             }
                         }
                     )
+                }
+                
+                // Auto Sync Interval Selection Dialog
+                if (showAutoSyncDialog) {
+                    Dialog(
+                        onDismissRequest = { showAutoSyncDialog = false },
+                        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth(0.92f)
+                                .wrapContentHeight(),
+                            shape = RoundedCornerShape(28.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 6.dp
+                        ) {
+                            Column {
+                                // Header
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                                colors = listOf(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    MaterialTheme.colorScheme.secondary
+                                                )
+                                            )
+                                        )
+                                        .padding(24.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.2f),
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Schedule,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.padding(12.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                "Sync Interval",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                            Text(
+                                                "How often should we update?",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White.copy(alpha = 0.8f)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Column(
+                                    modifier = Modifier.padding(20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    listOf(
+                                        15L to "Every 15 minutes (Real-time)",
+                                        30L to "Every 30 minutes",
+                                        60L to "Every hour",
+                                        180L to "Every 3 hours",
+                                        1440L to "Once a day"
+                                    ).forEach { (interval, label) ->
+                                        val isSelected = currentInterval == interval
+                                        Surface(
+                                            onClick = {
+                                                currentInterval = interval
+                                                autoSyncManager.enableAutoSync(interval)
+                                                showAutoSyncDialog = false
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                            border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(16.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = label,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                if (isSelected) {
+                                                    Icon(
+                                                        Icons.Filled.Check,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                TextButton(
+                                    onClick = { showAutoSyncDialog = false },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+                                ) {
+                                    Text("Cancel")
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
@@ -509,110 +752,50 @@ fun SettingsScreen(
     
     // Clear Data Dialog
     if (showClearDataDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearDataDialog = false },
-            icon = {
-                Icon(
-                    Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
+        QuickConfirmDialog(
+            onDismiss = { showClearDataDialog = false },
+            onConfirm = {
+                viewModel.clearAllData()
+                showClearDataDialog = false
             },
-            title = { Text("Clear All Data?") },
-            text = { 
-                Text(
-                    "This will delete all your goals progress, notes, tasks, and calendar events. " +
-                    "This action cannot be undone. Consider exporting a backup first."
-                ) 
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.clearAllData()
-                        showClearDataDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Clear All Data")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearDataDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            title = "Clear All Data?",
+            message = "This will delete all your goals progress, notes, tasks, and calendar events. This action cannot be undone. Consider exporting a backup first.",
+            isDestructive = true,
+            confirmText = "Clear Permanently"
         )
     }
     
     // Export Success Dialog
     if (showExportSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { showExportSuccessDialog = false },
-            icon = {
-                Icon(
-                    Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = completedColor
-                )
-            },
-            title = { Text("Backup Ready!") },
-            text = { 
-                Text(
-                    "Your backup file is ready to be saved or shared. " +
-                    "Keep it safe to restore your data later!"
-                ) 
-            },
-            confirmButton = {
-                Button(onClick = { showExportSuccessDialog = false }) {
-                    Text("OK")
-                }
-            }
+        QuickConfirmDialog(
+            onDismiss = { showExportSuccessDialog = false },
+            onConfirm = { showExportSuccessDialog = false },
+            title = "Backup Ready!",
+            message = "Your backup file is ready to be saved or shared. Keep it safe to restore your data later!",
+            confirmText = "Got it"
         )
     }
     
     // Import Success Dialog
     if (showImportSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { showImportSuccessDialog = false },
-            icon = {
-                Icon(
-                    Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = completedColor
-                )
-            },
-            title = { Text("Data Restored!") },
-            text = { 
-                Text("Your data has been successfully restored from the backup file.") 
-            },
-            confirmButton = {
-                Button(onClick = { showImportSuccessDialog = false }) {
-                    Text("OK")
-                }
-            }
+        QuickConfirmDialog(
+            onDismiss = { showImportSuccessDialog = false },
+            onConfirm = { showImportSuccessDialog = false },
+            title = "Data Restored!",
+            message = "Your data has been successfully restored from the backup file.",
+            confirmText = "Awesome"
         )
     }
     
     // Import Error Dialog
     if (importError != null) {
-        AlertDialog(
-            onDismissRequest = { importError = null },
-            icon = {
-                Icon(
-                    Icons.Filled.Error,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            title = { Text("Import Failed") },
-            text = { Text(importError!!) },
-            confirmButton = {
-                Button(onClick = { importError = null }) {
-                    Text("OK")
-                }
-            }
+        QuickConfirmDialog(
+            onDismiss = { importError = null },
+            onConfirm = { importError = null },
+            title = "Import Failed",
+            message = importError!!,
+            isDestructive = true,
+            confirmText = "OK"
         )
     }
 }
@@ -870,6 +1053,61 @@ fun SettingsItem(
 }
 
 @Composable
+fun SettingsItemWithSwitch(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    iconColor: Color = MaterialTheme.colorScheme.primary
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!isChecked) }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(iconColor.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
+        
+        Switch(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
 fun StatRow(
     label: String,
     value: String,
@@ -985,158 +1223,338 @@ fun EditProfileDialog(
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf<Long?>(userProfile?.dateOfBirth) }
     
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Filled.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        },
-        title = { Text("Edit Profile") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // First Name
-                OutlinedTextField(
-                    value = firstName,
-                    onValueChange = { firstName = it },
-                    label = { Text("First Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Last Name
-                OutlinedTextField(
-                    value = lastName,
-                    onValueChange = { lastName = it },
-                    label = { Text("Last Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Email
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Phone Number
-                OutlinedTextField(
-                    value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
-                    label = { Text("Phone Number") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Phone
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Occupation
-                OutlinedTextField(
-                    value = occupation,
-                    onValueChange = { occupation = it },
-                    label = { Text("Occupation") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Date of Birth
-                OutlinedTextField(
-                    value = dateOfBirthDisplay,
-                    onValueChange = { },
-                    label = { Text("Date of Birth") },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .heightIn(max = 680.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column {
+                // Header with gradient and avatar
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true },
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Filled.CalendarToday, contentDescription = "Select Date")
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                // Gender
-                Text(
-                    text = "Gender",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.tertiary
+                                )
+                            )
+                        )
+                        .padding(24.dp)
                 ) {
-                    com.lssgoo.planner.data.model.Gender.entries.forEach { gender ->
-                        FilterChip(
-                            selected = selectedGender == gender,
-                            onClick = { selectedGender = gender },
-                            label = { Text(gender.displayName) }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Avatar
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (firstName.isNotBlank()) {
+                                Text(
+                                    "${firstName.firstOrNull()?.uppercase() ?: ""}${lastName.firstOrNull()?.uppercase() ?: ""}",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.Person,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Edit Profile",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            "Update your personal information",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val updatedProfile = (userProfile ?: com.lssgoo.planner.data.model.UserProfile()).copy(
-                        firstName = firstName,
-                        lastName = lastName,
-                        email = email,
-                        phoneNumber = phoneNumber,
-                        occupation = occupation,
-                        gender = selectedGender,
-                        dateOfBirth = selectedDate,
-                        updatedAt = System.currentTimeMillis()
+                
+                // Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Name Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = firstName,
+                            onValueChange = { firstName = it },
+                            label = { Text("First Name") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        )
+                        
+                        OutlinedTextField(
+                            value = lastName,
+                            onValueChange = { lastName = it },
+                            label = { Text("Last Name") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                    }
+                    
+                    // Email
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        placeholder = { Text("your@email.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                     )
-                    onSave(updatedProfile)
-                },
-                enabled = firstName.isNotBlank()
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-    
-    // Date Picker (simplified - using a basic dialog)
-    if (showDatePicker) {
-        AlertDialog(
-            onDismissRequest = { showDatePicker = false },
-            title = { Text("Select Date of Birth") },
-            text = {
-                Text("Date picker implementation - for now, you can manually enter dates in the future")
-            },
-            confirmButton = {
-                Button(onClick = { showDatePicker = false }) {
-                    Text("OK")
+                    
+                    // Phone Number
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = { phoneNumber = it },
+                        label = { Text("Phone Number") },
+                        placeholder = { Text("+91 9876543210") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Phone,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    )
+                    
+                    // Occupation
+                    OutlinedTextField(
+                        value = occupation,
+                        onValueChange = { occupation = it },
+                        label = { Text("Occupation") },
+                        placeholder = { Text("Software Developer, Student, etc.") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Work,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
+                    
+                    // Date of Birth
+                    Surface(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, MaterialTheme.colorScheme.outline
+                        ),
+                        color = Color.Transparent
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Filled.CalendarToday,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        "Date of Birth",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        dateOfBirthDisplay,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    // Gender Section
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "Gender",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            com.lssgoo.planner.data.model.Gender.entries.forEach { gender ->
+                                val isSelected = selectedGender == gender
+                                Surface(
+                                    onClick = { selectedGender = gender },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.widthIn(min = 90.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        if (isSelected) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                        }
+                                        Text(
+                                            text = gender.displayName,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Action Buttons
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val updatedProfile = (userProfile ?: com.lssgoo.planner.data.model.UserProfile()).copy(
+                                firstName = firstName,
+                                lastName = lastName,
+                                email = email,
+                                phoneNumber = phoneNumber,
+                                occupation = occupation,
+                                gender = selectedGender,
+                                dateOfBirth = selectedDate,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                            onSave(updatedProfile)
+                        },
+                        enabled = firstName.isNotBlank(),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Save")
+                    }
                 }
             }
-        )
+        }
     }
+    
+    // Date Picker
+    if (showDatePicker) {
+        val calendar = Calendar.getInstance()
+        // If selectedDate is already set, use it
+        selectedDate?.let { calendar.timeInMillis = it }
+        
+        android.app.DatePickerDialog(
+            LocalContext.current,
+            { _, year, month, dayOfMonth ->
+                val selectedCalendar = Calendar.getInstance()
+                selectedCalendar.set(year, month, dayOfMonth)
+                selectedDate = selectedCalendar.timeInMillis
+                showDatePicker = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+        showDatePicker = false
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(bottom = 8.dp, top = 4.dp)
+    )
 }
 
 @Composable

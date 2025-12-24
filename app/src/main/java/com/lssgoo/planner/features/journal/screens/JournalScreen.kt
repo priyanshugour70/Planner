@@ -10,6 +10,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -278,183 +281,296 @@ fun AddJournalEntryDialog(
     
     // Linking
     var selectedGoalId by remember { mutableStateOf<String?>(null) }
-    var hasPhoto by remember { mutableStateOf(false) } // Mock photo attachment
-    
-    AlertDialog(
+    var hasPhoto by remember { mutableStateOf(false) }
+
+    Dialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxHeight(0.9f).fillMaxWidth(),
-        title = { Text("New Entry") },
-        text = {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // 1. Basic Info
-                item {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Title / Prompt") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                
-                // 2. Mood
-                item {
-                    Text("How are you feeling?", style = MaterialTheme.typography.labelMedium)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        JournalMood.entries.forEach { mood ->
-                           Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                               IconButton(
-                                   onClick = { selectedMood = mood },
-                                   modifier = Modifier
-                                       .size(40.dp)
-                                       .background(
-                                           if (selectedMood == mood) Color(mood.color).copy(alpha = 0.3f) else Color.Transparent, 
-                                           CircleShape
-                                       )
-                               ) {
-                                   Text(mood.emoji, fontSize = 24.sp)
-                               }
-                           }
-                        }
-                    }
-                }
-                
-                // 3. Main Content
-                item {
-                    OutlinedTextField(
-                        value = content,
-                        onValueChange = { content = it },
-                        label = { Text("Details & Reflection") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        maxLines = 10
-                    )
-                }
-                
-                // 4. Structured Sections
-                item {
-                    Divider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Structured Reflection", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                }
-                
-                item {
-                    OutlinedTextField(
-                        value = gratitude1,
-                        onValueChange = { gratitude1 = it },
-                        label = { Text("I am grateful for...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Default.Favorite, null) }
-                    )
-                }
-                
-                item {
-                    OutlinedTextField(
-                        value = win1,
-                        onValueChange = { win1 = it },
-                        label = { Text("Daily Win / Achievement") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Default.EmojiEvents, null) }
-                    )
-                }
-                
-                 item {
-                    OutlinedTextField(
-                        value = challenge1,
-                        onValueChange = { challenge1 = it },
-                        label = { Text("Challenge Overcome") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Default.Terrain, null) }
-                    )
-                }
-                
-                item {
-                    OutlinedTextField(
-                        value = tagsInput,
-                        onValueChange = { tagsInput = it },
-                        label = { Text("Tags (comma separated)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Default.Label, null) }
-                    )
-                }
-                
-                // 5. Attachments
-                item {
-                    Divider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(onClick = { hasPhoto = !hasPhoto }) {
-                            Icon(Icons.Default.PhotoCamera, null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (hasPhoto) "Photo Attached" else "Attach Photo")
-                        }
-                        
-                         // Simple goal linker dropdown could go here, for now simpler UI
-                    }
-                }
-                
-                // 6. Goal Link
-                if (availableGoals.isNotEmpty()) {
-                    item {
-                        Text("Link to Goal", style = MaterialTheme.typography.labelMedium)
-                        Row(modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState())) {
-                            availableGoals.forEach { goal ->
-                                FilterChip(
-                                    selected = selectedGoalId == goal.id,
-                                    onClick = { selectedGoalId = if (selectedGoalId == goal.id) null else goal.id },
-                                    label = { Text(goal.title) },
-                                    modifier = Modifier.padding(end = 8.dp)
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .fillMaxHeight(0.9f),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column {
+                // Gradient Header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiary,
+                                    MaterialTheme.colorScheme.primary
                                 )
+                            )
+                        )
+                        .padding(24.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.AutoStories,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.padding(14.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Journal Entry",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            "Record your thoughts and growth",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                // Scrollable Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    // 1. Mood Selection
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            "How are you feeling?",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            JournalMood.entries.forEach { mood ->
+                                val isSelected = selectedMood == mood
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Surface(
+                                        onClick = { selectedMood = mood },
+                                        modifier = Modifier.size(50.dp),
+                                        shape = CircleShape,
+                                        color = if (isSelected) Color(mood.color).copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                        border = if (isSelected) BorderStroke(2.dp, Color(mood.color)) else null
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(mood.emoji, fontSize = 28.sp)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        mood.name.lowercase().capitalize(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isSelected) Color(mood.color) else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val gratitudes = listOfNotNull(
-                        gratitude1.ifBlank { null },
-                        gratitude2.ifBlank { null }
-                    )
-                    val wins = listOfNotNull(win1.ifBlank { null })
-                    val challenges = listOfNotNull(challenge1.ifBlank { null })
-                    val tags = tagsInput.split(",").map { it.trim() }.filter { it.isNotBlank() }
-                    val photos = if (hasPhoto) listOf("mock_photo_uri") else emptyList()
-                    val linkedGoals = if (selectedGoalId != null) listOf(selectedGoalId!!) else emptyList()
-                    
-                    onAdd(
-                        JournalEntry(
-                            date = System.currentTimeMillis(),
-                            title = title,
-                            content = content,
-                            mood = selectedMood,
-                            gratitude = gratitudes,
-                            achievements = wins,
-                            challenges = challenges,
-                            tags = tags,
-                            photos = photos,
-                            linkedGoalIds = linkedGoals
+
+                    // 2. Title & Main Reflection
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            label = { Text("Topic / Prompt") },
+                            placeholder = { Text("What's on your mind?") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Default.Title, null, tint = MaterialTheme.colorScheme.primary) }
                         )
-                    )
+
+                        OutlinedTextField(
+                            value = content,
+                            onValueChange = { content = it },
+                            label = { Text("Full Reflection") },
+                            placeholder = { Text("Dive deep into your thoughts...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 150.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+
+                    // 3. Structured Highlights
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Flare, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Structured Reflection",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = gratitude1,
+                            onValueChange = { gratitude1 = it },
+                            label = { Text("I am grateful for...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            leadingIcon = { Icon(Icons.Default.Favorite, null, tint = Color(0xFFE91E63)) }
+                        )
+
+                        OutlinedTextField(
+                            value = win1,
+                            onValueChange = { win1 = it },
+                            label = { Text("Key Achievement / Win") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            leadingIcon = { Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFFFC107)) }
+                        )
+                        
+                        OutlinedTextField(
+                            value = challenge1,
+                            onValueChange = { challenge1 = it },
+                            label = { Text("Challenge overcome") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            leadingIcon = { Icon(Icons.Default.Terrain, null, tint = Color(0xFF795548)) }
+                        )
+                    }
+
+                    // 4. Tags & Goals
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = tagsInput,
+                            onValueChange = { tagsInput = it },
+                            label = { Text("Tags") },
+                            placeholder = { Text("work, growth, peace...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            leadingIcon = { Icon(Icons.Default.Label, null, tint = MaterialTheme.colorScheme.primary) }
+                        )
+
+                        if (availableGoals.isNotEmpty()) {
+                            Text(
+                                "Link to a Life Goal",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                availableGoals.forEach { goal ->
+                                    val isSelected = selectedGoalId == goal.id
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = { selectedGoalId = if (isSelected) null else goal.id },
+                                        label = { Text(goal.title) },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 5. Attachments
+                    Surface(
+                        onClick = { hasPhoto = !hasPhoto },
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (hasPhoto) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                if (hasPhoto) Icons.Default.CheckCircle else Icons.Default.AddAPhoto,
+                                contentDescription = null,
+                                tint = if (hasPhoto) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                if (hasPhoto) "Photo Memory Attached" else "Capture a Memory (Photo)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = if (hasPhoto) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                 }
-            ) {
-                Text("Save Entry")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+
+                // Action Buttons
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val gratitudes = listOfNotNull(
+                                gratitude1.ifBlank { null },
+                                gratitude2.ifBlank { null }
+                            )
+                            val wins = listOfNotNull(win1.ifBlank { null })
+                            val challenges = listOfNotNull(challenge1.ifBlank { null })
+                            val tags = tagsInput.split(",").map { it.trim() }.filter { it.isNotBlank() }
+                            val photos = if (hasPhoto) listOf("mock_photo_uri") else emptyList()
+                            val linkedGoals = if (selectedGoalId != null) listOf(selectedGoalId!!) else emptyList()
+                            
+                            onAdd(
+                                JournalEntry(
+                                    date = System.currentTimeMillis(),
+                                    title = title,
+                                    content = content,
+                                    mood = selectedMood,
+                                    gratitude = gratitudes,
+                                    achievements = wins,
+                                    challenges = challenges,
+                                    tags = tags,
+                                    photos = photos,
+                                    linkedGoalIds = linkedGoals
+                                )
+                            )
+                        },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.Save, null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Save Entry")
+                    }
+                }
             }
         }
-    )
+    }
 }
 

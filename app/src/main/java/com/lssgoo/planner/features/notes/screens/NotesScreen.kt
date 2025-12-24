@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.lssgoo.planner.data.model.*
 import com.lssgoo.planner.ui.components.*
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
+import androidx.compose.ui.window.Dialog
 import com.lssgoo.planner.features.notes.components.NoteCard
 import com.lssgoo.planner.features.notes.models.NoteColors
 import java.text.SimpleDateFormat
@@ -333,24 +335,23 @@ fun NotesScreen(
     
     // Unlock Dialog
     if (noteToUnlock != null) {
-        AlertDialog(
+        Dialog(
             onDismissRequest = { noteToUnlock = null },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-            content = {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    com.lssgoo.planner.features.settings.screens.PinLockScreen(
-                        viewModel = viewModel,
-                        onUnlockSuccess = {
-                            editingNote = noteToUnlock
-                            noteToUnlock = null
-                        }
-                    )
-                }
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                com.lssgoo.planner.features.settings.screens.PinLockScreen(
+                    viewModel = viewModel,
+                    onUnlockSuccess = {
+                        editingNote = noteToUnlock
+                        noteToUnlock = null
+                    }
+                )
             }
-        )
+        }
     }
     
     // Add/Edit Note Sheet
@@ -769,28 +770,16 @@ fun NoteEditorSheet(
     
     // Delete confirmation dialog
     if (showDeleteConfirm && note != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete Note?") },
-            text = { Text("This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDelete(note.id)
-                        showDeleteConfirm = false
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
+        QuickConfirmDialog(
+            onDismiss = { showDeleteConfirm = false },
+            onConfirm = {
+                onDelete(note.id)
+                showDeleteConfirm = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
-                }
-            }
+            title = "Delete Note?",
+            message = "Are you sure you want to delete this note? This action cannot be undone.",
+            isDestructive = true,
+            confirmText = "Delete Permanent"
         )
     }
 }
