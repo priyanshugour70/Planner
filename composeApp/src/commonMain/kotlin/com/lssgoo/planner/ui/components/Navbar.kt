@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,124 +58,135 @@ fun DynamicBottomNavBar(
     val canScrollLeft by remember { derivedStateOf { scrollState.value > 0 } }
     val canScrollRight by remember { derivedStateOf { scrollState.canScrollForward } }
 
-    Box(
+    // Keyboard visibility detection
+    val isKeyboardOpen = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
+
+    AnimatedVisibility(
+        visible = !isKeyboardOpen,
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp) // Lifted bottom padding
     ) {
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 12.dp,
-                    shape = RoundedCornerShape(28.dp),
-                    ambientColor = accentColor.copy(alpha = 0.2f),
-                    spotColor = accentColor.copy(alpha = 0.2f)
-                ),
-            shape = RoundedCornerShape(36.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
-            ),
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.1f)
-                    )
-                )
-            )
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)
         ) {
-            Row(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .shadow(
+                        elevation = 12.dp,
+                        shape = RoundedCornerShape(28.dp),
+                        ambientColor = accentColor.copy(alpha = 0.2f),
+                        spotColor = accentColor.copy(alpha = 0.2f)
+                    ),
+                shape = RoundedCornerShape(36.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.1f)
+                        )
+                    )
+                )
             ) {
-                // Left Chevron
-                AnimatedVisibility(
-                    visible = canScrollLeft,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
-                        IconButton(
-                            onClick = {
-                                if (currentIndex > 0) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    navController.navigate(destinations[currentIndex - 1].route) {
-                                        popUpTo(Routes.DASHBOARD) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.ChevronLeft,
-                                null,
-                                tint = accentColor.copy(alpha = 0.6f),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Scrollable Destinations
-                Box(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier
-                            .horizontalScroll(scrollState)
-                            .padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Left Chevron
+                    AnimatedVisibility(
+                        visible = canScrollLeft,
+                        enter = fadeIn() + expandHorizontally(),
+                        exit = fadeOut() + shrinkHorizontally()
                     ) {
-                        destinations.forEach { destination ->
-                            DynamicNavItem(
-                                destination = destination,
-                                isSelected = currentRoute == destination.route,
-                                accentColor = accentColor,
+                        Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
+                            IconButton(
                                 onClick = {
-                                    if (currentRoute != destination.route) {
-                                        navController.navigate(destination.route) {
+                                    if (currentIndex > 0) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        navController.navigate(destinations[currentIndex - 1].route) {
                                             popUpTo(Routes.DASHBOARD) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
                                     }
-                                }
-                            )
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronLeft,
+                                    contentDescription = null,
+                                    tint = accentColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
-                }
 
-                // Right Chevron
-                AnimatedVisibility(
-                    visible = canScrollRight,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally()
-                ) {
-                    Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
-                        IconButton(
-                            onClick = {
-                                if (currentIndex < destinations.size - 1) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    navController.navigate(destinations[currentIndex + 1].route) {
-                                        popUpTo(Routes.DASHBOARD) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(36.dp)
+                    // Scrollable Destinations
+                    Box(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier
+                                .horizontalScroll(scrollState)
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                null,
-                                tint = accentColor.copy(alpha = 0.6f),
-                                modifier = Modifier.size(24.dp)
-                            )
+                            destinations.forEach { destination ->
+                                DynamicNavItem(
+                                    destination = destination,
+                                    isSelected = currentRoute == destination.route,
+                                    accentColor = accentColor,
+                                    onClick = {
+                                        if (currentRoute != destination.route) {
+                                            navController.navigate(destination.route) {
+                                                popUpTo(Routes.DASHBOARD) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Right Chevron
+                    AnimatedVisibility(
+                        visible = canScrollRight,
+                        enter = fadeIn() + expandHorizontally(),
+                        exit = fadeOut() + shrinkHorizontally()
+                    ) {
+                        Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.Center) {
+                            IconButton(
+                                onClick = {
+                                    if (currentIndex < destinations.size - 1) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        navController.navigate(destinations[currentIndex + 1].route) {
+                                            popUpTo(Routes.DASHBOARD) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = accentColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
                 }

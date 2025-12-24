@@ -3,6 +3,8 @@ package com.lssgoo.planner.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -26,43 +28,101 @@ import com.lssgoo.planner.features.settings.screens.SettingsScreen
 import com.lssgoo.planner.features.search.screens.SearchScreen
 import com.lssgoo.planner.features.reminders.screens.RemindersScreen
 import com.lssgoo.planner.features.finance.screens.FinanceScreen
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.layout.fillMaxSize
+import com.lssgoo.planner.features.habits.screens.HabitDetailScreen
+import com.lssgoo.planner.features.journal.screens.JournalEntryScreen
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(viewModel: PlannerViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    
+    val bottomDestinations = BottomNavDestination.entries
+    val pagerState = rememberPagerState(pageCount = { bottomDestinations.size })
+
+    // Sync Navigation -> Pager
+    LaunchedEffect(currentRoute) {
+        val index = bottomDestinations.indexOfFirst { it.route == currentRoute }
+        if (index != -1 && pagerState.currentPage != index) {
+            pagerState.animateScrollToPage(index)
+        }
+    }
+
+    // Sync Pager -> Navigation (Only when settled to avoid jumpy nav)
+    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            val targetRoute = bottomDestinations[pagerState.currentPage].route
+            if (currentRoute != targetRoute && shouldShowBottomBar(currentRoute)) {
+                navController.navigate(targetRoute) {
+                    popUpTo(Routes.DASHBOARD) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
             if (shouldShowBottomBar(currentRoute)) {
                 com.lssgoo.planner.ui.components.DynamicBottomNavBar(navController, currentRoute)
             }
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0) // Disable automatic inset padding to prevent double spacing
     ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = Routes.DASHBOARD,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()) // Only apply bottom padding for the nav bar
         ) {
-            composable(Routes.DASHBOARD) {
-                DashboardScreen(
-                    viewModel = viewModel,
-                    onGoalClick = { goalId -> navController.navigate(Routes.goalDetail(goalId)) },
-                    onViewAllGoals = { navController.navigate(Routes.GOALS) },
-                    onViewAllTasks = { navController.navigate(Routes.TASKS) },
-                    onViewAllHabits = { navController.navigate(Routes.HABITS) },
-                    onViewAllJournal = { navController.navigate(Routes.JOURNAL) },
-                    onViewAllNotes = { navController.navigate(Routes.NOTES) },
-                    onSearchClick = { navController.navigate(Routes.SEARCH) }
-                )
-            }
-            
-            composable(Routes.GOALS) {
-                GoalsScreen(
-                    viewModel = viewModel,
-                    onGoalClick = { goalId -> navController.navigate(Routes.goalDetail(goalId)) }
-                )
+            // Top Level Destinations - all show the same Pager
+            bottomDestinations.forEach { destination ->
+                composable(destination.route) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        beyondViewportPageCount = 1
+                    ) { page ->
+                        when (bottomDestinations[page]) {
+                            BottomNavDestination.DASHBOARD -> DashboardScreen(
+                                viewModel = viewModel,
+                                onGoalClick = { goalId -> navController.navigate(Routes.goalDetail(goalId)) },
+                                onViewAllGoals = { navController.navigate(Routes.GOALS) },
+                                onViewAllTasks = { navController.navigate(Routes.TASKS) },
+                                onViewAllHabits = { navController.navigate(Routes.HABITS) },
+                                onViewAllJournal = { navController.navigate(Routes.JOURNAL) },
+                                onViewAllNotes = { navController.navigate(Routes.NOTES) },
+                                onSearchClick = { navController.navigate(Routes.SEARCH) }
+                            )
+                            BottomNavDestination.GOALS -> GoalsScreen(
+                                viewModel = viewModel,
+                                onGoalClick = { goalId -> navController.navigate(Routes.goalDetail(goalId)) }
+                            )
+                            BottomNavDestination.TASKS -> TasksScreen(viewModel = viewModel)
+                            BottomNavDestination.FINANCE -> FinanceScreen(viewModel = viewModel)
+                            BottomNavDestination.HABITS -> HabitsScreen(
+                                viewModel = viewModel,
+                                onHabitClick = { habitId -> navController.navigate(Routes.habitDetail(habitId)) }
+                            )
+                            BottomNavDestination.JOURNAL -> JournalScreen(
+                                viewModel = viewModel,
+                                onEntryClick = { entryId -> navController.navigate(Routes.journalEntry(entryId)) }
+                            )
+                            BottomNavDestination.NOTES -> NotesScreen(viewModel = viewModel)
+                            BottomNavDestination.CALENDAR -> CalendarScreen(viewModel = viewModel)
+                            BottomNavDestination.SETTINGS -> SettingsScreen(
+                                viewModel = viewModel,
+                                onBack = { navController.popBackStack() },
+                                onNavigateToPin = { navController.navigate(Routes.APPLOCK) },
+                                onNavigate = { route -> navController.navigate(route) }
+                            )
+                        }
+                    }
+                }
             }
             
             composable(Routes.GOAL_DETAIL) { backStackEntry ->
@@ -71,30 +131,6 @@ fun MainScreen(viewModel: PlannerViewModel) {
                     goalId = goalId,
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() }
-                )
-            }
-            
-            composable(Routes.TASKS) {
-                TasksScreen(viewModel = viewModel)
-            }
-            
-            composable(Routes.HABITS) {
-                HabitsScreen(
-                    viewModel = viewModel,
-                    onHabitClick = { habitId -> navController.navigate(Routes.habitDetail(habitId)) }
-                )
-            }
-            
-            composable(Routes.JOURNAL) {
-                JournalScreen(
-                    viewModel = viewModel,
-                    onEntryClick = { entryId -> navController.navigate(Routes.journalEntry(entryId)) }
-                )
-            }
-            
-            composable(Routes.NOTES) {
-                NotesScreen(
-                    viewModel = viewModel
                 )
             }
             
@@ -108,22 +144,7 @@ fun MainScreen(viewModel: PlannerViewModel) {
             }
             
             composable(Routes.NOTE_CREATE) {
-                // NotesScreen handles its own creation via sheets, 
-                // but if we need a separate create screen, we'd need to update NoteDetailScreen
                 NotesScreen(viewModel = viewModel)
-            }
-            
-            composable(Routes.CALENDAR) {
-                CalendarScreen(viewModel = viewModel)
-            }
-            
-            composable(Routes.SETTINGS) {
-                SettingsScreen(
-                    viewModel = viewModel,
-                    onBack = { navController.popBackStack() },
-                    onNavigateToPin = { navController.navigate(Routes.APPLOCK) },
-                    onNavigate = { route -> navController.navigate(route) }
-                )
             }
             
             composable(Routes.SEARCH) {
@@ -133,21 +154,31 @@ fun MainScreen(viewModel: PlannerViewModel) {
                     onResultClick = { route -> navController.navigate(route) }
                 )
             }
-
+            
             composable(Routes.REMINDERS) {
-                 RemindersScreen(
-                     viewModel = viewModel,
-                     onBack = { navController.popBackStack() }
-                 )
-            }
-
-            composable(Routes.FINANCE) {
-                FinanceScreen(
-                    viewModel = viewModel
+                RemindersScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
-            // Additional routes can be added here (Analytics, Finance, etc.)
+            composable(Routes.HABIT_DETAIL) { backStackEntry ->
+                val habitId = backStackEntry.arguments?.getString("habitId") ?: ""
+                HabitDetailScreen(
+                    habitId = habitId,
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.JOURNAL_ENTRY) { backStackEntry ->
+                val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+                JournalEntryScreen(
+                    entryId = entryId,
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
