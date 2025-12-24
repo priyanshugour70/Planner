@@ -1,18 +1,68 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle-wrapper.jar
+
+# IDE - Android Studio / IntelliJ
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.idea/
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+
+# Local configuration
 local.properties
 keystore.properties
 s3.properties
+
+# Secrets & Keystores
 *.jks
+*.keystore
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Android
+/captures
+.externalNativeBuild/
+.cxx/
+
+# Kotlin/Native
+*.klib
+*.knm
+
+# iOS / Xcode
+iosApp/iosApp.xcodeproj/project.xcworkspace/
+iosApp/iosApp.xcodeproj/xcuserdata/
+iosApp/*.xcworkspace/
+iosApp/Pods/
+iosApp/DerivedData/
+iosApp/.build/
+*.xcuserstate
+*.xcuserdatad/
+*.dSYM.zip
+*.dSYM
+
+# CocoaPods
+iosApp/Podfile.lock
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Compose Multiplatform
+/composeApp/build/
+/shared/build/
+
+# Generated files
+*.hprof
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Kotlin Multiplatform specific
+kotlin-js-store/
