@@ -19,10 +19,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.lssgoo.planner.data.model.Goal
-import com.lssgoo.planner.data.model.GoalCategory
+import com.lssgoo.planner.features.goals.models.Goal
+import com.lssgoo.planner.features.goals.models.GoalCategory
 import com.lssgoo.planner.features.goals.models.Milestone
 import com.lssgoo.planner.features.goals.models.MilestoneQuality
+import com.lssgoo.planner.ui.components.AppIcons
+import com.lssgoo.planner.ui.components.IconSelector
 import com.lssgoo.planner.util.KmpDateFormatter
 import kotlinx.datetime.Clock
 
@@ -41,6 +43,7 @@ fun AddEditGoalDialog(
     var category by remember { mutableStateOf(goal?.category ?: GoalCategory.HEALTH) }
     var color by remember { mutableLongStateOf(goal?.color ?: 0xFF4CAF50) }
     var targetDate by remember { mutableStateOf(goal?.targetDate) }
+    var icon by remember { mutableStateOf(goal?.icon ?: category.iconName) }
     var showDatePicker by remember { mutableStateOf(false) }
     
 
@@ -78,11 +81,11 @@ fun AddEditGoalDialog(
                             color = Color.White.copy(alpha = 0.2f),
                             modifier = Modifier.size(48.dp)
                         ) {
-                            Text(
-                                category.emoji,
-                                modifier = Modifier.padding(8.dp),
-                                style = MaterialTheme.typography.headlineSmall,
-                                textAlign = TextAlign.Center
+                            Icon(
+                                imageVector = AppIcons.fromName(icon),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.padding(12.dp).size(24.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -130,6 +133,13 @@ fun AddEditGoalDialog(
                         leadingIcon = { Icon(Icons.Default.Description, null, tint = MaterialTheme.colorScheme.primary) }
                     )
 
+                    // Icon Selector Section
+                    IconSelector(
+                        selectedIcon = icon,
+                        onIconSelected = { icon = it },
+                        selectedColor = Color(color)
+                    )
+
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             "Select Category",
@@ -145,7 +155,11 @@ fun AddEditGoalDialog(
                             GoalCategory.entries.forEach { cat ->
                                 val isSelected = category == cat
                                 Surface(
-                                    onClick = { category = cat },
+                                    onClick = { 
+                                        val oldCatIcon = category.iconName
+                                        category = cat
+                                        if (icon == oldCatIcon) icon = cat.iconName
+                                    },
                                     shape = RoundedCornerShape(14.dp),
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                     modifier = Modifier.widthIn(min = 100.dp)
@@ -155,7 +169,12 @@ fun AddEditGoalDialog(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ) {
-                                        Text(cat.emoji)
+                                        Icon(
+                                            imageVector = AppIcons.fromName(cat.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             cat.displayName,
@@ -230,6 +249,7 @@ fun AddEditGoalDialog(
                                 title = title,
                                 description = description,
                                 category = category,
+                                icon = icon,
                                 color = color,
                                 targetDate = targetDate,
                                 updatedAt = Clock.System.now().toEpochMilliseconds()
@@ -238,7 +258,7 @@ fun AddEditGoalDialog(
                                 title = title,
                                 description = description,
                                 category = category,
-                                icon = category.iconName,
+                                icon = icon,
                                 color = color,
                                 targetDate = targetDate
                             )

@@ -624,7 +624,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Outlined.Code,
                         title = "Developer",
-                        subtitle = "Built with ❤️ by LSSGOO",
+                        subtitle = "Designed and Built by LSSGOO",
                         onClick = { onNavigate(com.lssgoo.planner.ui.navigation.Routes.ABOUT_DEVELOPER) },
                         iconColor = GoalColors.startup
                     )

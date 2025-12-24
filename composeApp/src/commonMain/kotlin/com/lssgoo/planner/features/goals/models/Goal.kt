@@ -42,16 +42,16 @@ enum class MilestoneQuality(val displayName: String, val color: Long) {
 }
 
 @Serializable
-enum class GoalCategory(val displayName: String, val emoji: String, val iconName: String) {
-    HEALTH("Health & Fitness", "💪", "FitnessCenter"),
-    CAREER("Career", "💼", "Work"),
-    LEARNING("Learning", "📚", "MenuBook"),
-    COMMUNICATION("Communication", "🗣️", "RecordVoiceOver"),
-    LIFESTYLE("Lifestyle", "🌅", "WbSunny"),
-    DISCIPLINE("Discipline", "⏰", "Schedule"),
-    FINANCE("Finance", "💰", "Savings"),
-    STARTUP("Startup", "🚀", "RocketLaunch"),
-    MINDFULNESS("Mindfulness", "🧘", "SelfImprovement")
+enum class GoalCategory(val displayName: String, val iconName: String) {
+    HEALTH("Health & Fitness", "FitnessCenter"),
+    CAREER("Career", "Work"),
+    LEARNING("Learning", "MenuBook"),
+    COMMUNICATION("Communication", "RecordVoiceOver"),
+    LIFESTYLE("Lifestyle", "WbSunny"),
+    DISCIPLINE("Discipline", "Schedule"),
+    FINANCE("Finance", "Savings"),
+    STARTUP("Startup", "RocketLaunch"),
+    MINDFULNESS("Mindfulness", "SelfImprovement")
 }
 
 /**

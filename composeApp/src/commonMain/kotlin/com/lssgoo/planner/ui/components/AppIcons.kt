@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.outlined.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.lssgoo.planner.features.goals.models.Goal
 import com.lssgoo.planner.features.goals.models.GoalCategory
 
 /**
@@ -92,4 +93,121 @@ object AppIcons {
     val AccountBalanceWallet = Icons.Default.AccountBalanceWallet
     val Payments = Icons.Default.Payments
     val DonutLarge = Icons.Default.DonutLarge
+    val WaterDrop = Icons.Default.WaterDrop
+    val Restaurant = Icons.Default.Restaurant
+    val DirectionsCar = Icons.Default.DirectionsCar
+    val ShoppingBag = Icons.Default.ShoppingBag
+    val Movie = Icons.Default.Movie
+    val MedicalServices = Icons.Default.MedicalServices
+    val School = Icons.Default.School
+    val ShowChart = Icons.Default.ShowChart
+    val Receipt = Icons.Default.Receipt
+    val Home = Icons.Default.Home
+    val CardGiftcard = Icons.Default.CardGiftcard
+    val Category = Icons.Default.Category
+    val Handshake = Icons.Default.Handshake
+    val Rocket = Icons.Default.Rocket
+    val Person = Icons.Default.Person
+    val Email = Icons.Default.Email
+    val Palette = Icons.Default.Palette
+    val DarkMode = Icons.Default.DarkMode
+    val LightMode = Icons.Default.LightMode
+    val Brush = Icons.Default.Brush
+    val Favorite = Icons.Default.Favorite
+    
+    // Additional Category Icons
+    val Fastfood = Icons.Default.Fastfood
+    val LocalLibrary = Icons.Default.LocalLibrary
+    val Laptop = Icons.Default.Laptop
+    val Terminal = Icons.Default.Terminal
+    val Language = Icons.Default.Language
+    val TravelExplore = Icons.Default.TravelExplore
+    val DirectionsBike = Icons.Default.DirectionsBike
+    val Pool = Icons.Default.Pool
+    val Hiking = Icons.Default.Hiking
+    val SportsBasketball = Icons.Default.SportsBasketball
+    val MusicNote = Icons.Default.MusicNote
+    val BrushLogo = Icons.Default.Brush
+    val Psychology = Icons.Default.Psychology
+    val AutoAwesome = Icons.Default.AutoAwesome
+    val MonitorWeight = Icons.Default.MonitorWeight
+    val Bedtime = Icons.Default.Bedtime
+    val WineBar = Icons.Default.WineBar
+    val Coffee = Icons.Default.Coffee
+    val Meditation = Icons.Default.SelfImprovement
+    val Savings = Icons.Default.Savings
+    
+    /**
+     * Grouped icons for selector
+     */
+    val SelectionGroups = mapOf(
+        "Health & Fitness" to listOf(
+            "FitnessCenter", "MonitorWeight", "DirectionsBike", "Pool", "Hiking", 
+            "SportsBasketball", "SelfImprovement", "Bedtime", "WaterDrop", "MedicalServices"
+        ),
+        "Productivity & Learning" to listOf(
+            "Laptop", "Terminal", "MenuBook", "LocalLibrary", "School", "Language", 
+            "Schedule", "HistoryEdu", "TrendingUp", "Assessment"
+        ),
+        "Lifestyle & Leisure" to listOf(
+            "Restaurant", "Fastfood", "Coffee", "WineBar", "Movie", "MusicNote", 
+            "Palette", "Brush", "TravelExplore", "DirectionsCar", "Home"
+        ),
+        "Finance & Others" to listOf(
+            "Savings", "Payments", "AccountBalanceWallet", "Receipt", "ShoppingBag", 
+            "CardGiftcard", "RocketLaunch", "AutoAwesome", "Favorite", "Psychology"
+        )
+    )
+
+    /**
+     * Maps a string name to an ImageVector
+     */
+    fun fromName(name: String): ImageVector {
+        return when (name) {
+            "WaterDrop" -> WaterDrop
+            "AutoMirrored.Filled.MenuBook", "MenuBook" -> Learning
+            "FitnessCenter" -> Health
+            "SelfImprovement" -> Mindfulness
+            "HistoryEdu" -> Journal
+            "Restaurant" -> Restaurant
+            "DirectionsCar" -> DirectionsCar
+            "ShoppingBag" -> ShoppingBag
+            "Movie" -> Movie
+            "MedicalServices" -> MedicalServices
+            "School" -> School
+            "Payments" -> Payments
+            "ShowChart" -> ShowChart
+            "Receipt" -> Receipt
+            "Home" -> Home
+            "CardGiftcard" -> CardGiftcard
+            "Category" -> Category
+            "Handshake" -> Handshake
+            "RocketLaunch" -> Startup
+            "Work" -> Career
+            "WbSunny" -> Lifestyle
+            "Schedule" -> Discipline
+            "Savings" -> Finance
+            "RecordVoiceOver" -> Communication
+            "Fastfood" -> Fastfood
+            "LocalLibrary" -> LocalLibrary
+            "Laptop" -> Laptop
+            "Terminal" -> Terminal
+            "Language" -> Language
+            "TravelExplore" -> TravelExplore
+            "DirectionsBike" -> DirectionsBike
+            "Pool" -> Pool
+            "Hiking" -> Hiking
+            "SportsBasketball" -> SportsBasketball
+            "MusicNote" -> MusicNote
+            "Brush" -> Brush
+            "Psychology" -> Psychology
+            "AutoAwesome" -> AutoAwesome
+            "MonitorWeight" -> MonitorWeight
+            "Bedtime" -> Bedtime
+            "WineBar" -> WineBar
+            "LocalCoffee", "Coffee" -> Coffee
+            "Favorite" -> Favorite
+            else -> Dashboard
+        }
+    }
 }

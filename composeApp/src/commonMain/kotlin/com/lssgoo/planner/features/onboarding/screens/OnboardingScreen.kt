@@ -1,290 +1,430 @@
 package com.lssgoo.planner.features.onboarding.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.SizeTransform
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.lssgoo.planner.data.model.Gender
-import com.lssgoo.planner.features.onboarding.components.*
-import com.lssgoo.planner.features.settings.models.UserProfile
+import androidx.compose.ui.unit.sp
+import com.lssgoo.planner.data.model.ThemeMode
+import com.lssgoo.planner.data.model.UserProfile
+import com.lssgoo.planner.ui.components.AppIcons
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.shadow
+import androidx.compose.animation.core.*
+import androidx.compose.ui.geometry.Offset
+
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun OnboardingScreen(viewModel: PlannerViewModel) {
+    var step by remember { mutableStateOf(OnboardingStep.WELCOME) }
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    
+    // User data state
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    val themeMode by viewModel.settings.collectAsState()
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Dynamic Animated Background
+        AnimatedBackground()
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .windowInsetsPadding(WindowInsets.systemBars),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Step Indicator
+            OnboardingProgress(currentStep = step)
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Main Content Area
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                AnimatedContent(
+                    targetState = step,
+                    transitionSpec = {
+                        (fadeIn() + scaleIn(initialScale = 0.9f)).togetherWith(fadeOut() + scaleOut(targetScale = 1.1f))
+                    }
+                ) { currentStep ->
+                    when (currentStep) {
+                        OnboardingStep.WELCOME -> WelcomeView()
+                        OnboardingStep.PROFILE -> ProfileView(
+                            firstName = firstName,
+                            lastName = lastName,
+                            email = email,
+                            onFirstNameChange = { firstName = it },
+                            onLastNameChange = { lastName = it },
+                            onEmailChange = { email = it }
+                        )
+                        OnboardingStep.THEME -> ThemeView(
+                            currentMode = themeMode.themeMode,
+                            onThemeSelect = { 
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.updateSettings(viewModel.settings.value.copy(themeMode = it)) 
+                            }
+                        )
+                        OnboardingStep.FINISH -> FinishView(firstName = firstName)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Navigation Button
+            Button(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    when (step) {
+                        OnboardingStep.WELCOME -> step = OnboardingStep.PROFILE
+                        OnboardingStep.PROFILE -> if (firstName.isNotBlank()) step = OnboardingStep.THEME
+                        OnboardingStep.THEME -> step = OnboardingStep.FINISH
+                        OnboardingStep.FINISH -> {
+                            viewModel.saveUserProfile(
+                                UserProfile(
+                                    firstName = firstName,
+                                    lastName = lastName,
+                                    email = email,
+                                    isOnboardingComplete = true
+                                )
+                            )
+                            viewModel.setOnboardingComplete(true)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .shadow(12.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                enabled = if (step == OnboardingStep.PROFILE) firstName.isNotBlank() else true,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(
+                    text = if (step == OnboardingStep.FINISH) "Let's Begin" else "Continue",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = if (step == OnboardingStep.FINISH) Icons.Default.RocketLaunch else Icons.Default.ArrowForward,
+                    contentDescription = null
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun WelcomeView() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), CircleShape)
+                .padding(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoGraph,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(40.dp))
+        
+        Text(
+            text = "Master Your 2026",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Organize your goals, track your habits, and build the life you've always dreamed of.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OnboardingScreen(
-    viewModel: PlannerViewModel,
-    modifier: Modifier = Modifier
+fun ProfileView(
+    firstName: String,
+    lastName: String,
+    email: String,
+    onFirstNameChange: (String) -> Unit,
+    onLastNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit
 ) {
-    val isCheckingSync by viewModel.isCheckingSync.collectAsState()
-    val savedProfile by viewModel.userProfile.collectAsState()
-    
-    var currentStep by remember { mutableIntStateOf(0) }
-    var firstName by remember { mutableStateOf(savedProfile.firstName) }
-    var lastName by remember { mutableStateOf(savedProfile.lastName) }
-    var dateOfBirth by remember { mutableStateOf(savedProfile.dateOfBirth) }
-    var gender by remember { mutableStateOf(savedProfile.gender) }
-    var email by remember { mutableStateOf(savedProfile.email) }
-    var occupation by remember { mutableStateOf(savedProfile.occupation) }
-    
-    // Sync UI with saved profile if data is restored from cloud
-    LaunchedEffect(savedProfile) {
-        if (firstName.isEmpty() && savedProfile.firstName.isNotEmpty()) {
-            firstName = savedProfile.firstName
-            lastName = savedProfile.lastName
-            dateOfBirth = savedProfile.dateOfBirth
-            gender = savedProfile.gender
-            email = savedProfile.email
-            occupation = savedProfile.occupation
-            // If we restored a complete profile, maybe skip to the end
-            if (savedProfile.firstName.isNotEmpty()) currentStep = 5
-        }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Tell us about yourself",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        OutlinedTextField(
+            value = firstName,
+            onValueChange = onFirstNameChange,
+            label = { Text("First Name") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            leadingIcon = { Icon(Icons.Default.Person, null) },
+            singleLine = true
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = onLastNameChange,
+            label = { Text("Last Name") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            leadingIcon = { Icon(Icons.Default.Badge, null) },
+            singleLine = true
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            label = { Text("Email Address") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            leadingIcon = { Icon(Icons.Default.Email, null) },
+            singleLine = true
+        )
     }
+}
 
-    val focusManager = LocalFocusManager.current
-    
-    val steps = listOf(
-        "Welcome",
-        "Name",
-        "Birthday",
-        "Gender",
-        "Details",
-        "Complete"
-    )
-    
-    val isNextEnabled = when (currentStep) {
-        0 -> true // Welcome step
-        1 -> firstName.isNotBlank() // Name step
-        2 -> true // DOB is optional
-        3 -> true // Gender selection
-        4 -> true // Details are optional
-        else -> true
-    }
-    
-    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
-    
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
+@Composable
+fun ThemeView(
+    currentMode: ThemeMode,
+    onThemeSelect: (ThemeMode) -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Choose your style",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ThemeCard(
+                mode = ThemeMode.LIGHT,
+                isSelected = currentMode == ThemeMode.LIGHT,
+                icon = Icons.Default.LightMode,
+                label = "Light",
+                modifier = Modifier.weight(1f),
+                onClick = { onThemeSelect(ThemeMode.LIGHT) }
             )
-    ) {
-        // Decorative background shapes
-        Box(
-            modifier = Modifier
-                .size(350.dp)
-                .offset(x = (-175).dp, y = (-75).dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.04f), CircleShape)
+            ThemeCard(
+                mode = ThemeMode.DARK,
+                isSelected = currentMode == ThemeMode.DARK,
+                icon = Icons.Default.DarkMode,
+                label = "Dark",
+                modifier = Modifier.weight(1f),
+                onClick = { onThemeSelect(ThemeMode.DARK) }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        ThemeCard(
+            mode = ThemeMode.SYSTEM,
+            isSelected = currentMode == ThemeMode.SYSTEM,
+            icon = Icons.Default.SettingsSuggest,
+            label = "System Default",
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { onThemeSelect(ThemeMode.SYSTEM) }
         )
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .align(Alignment.BottomEnd)
-                .offset(x = 125.dp, y = 75.dp)
-                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.04f), CircleShape)
-        )
+    }
+}
 
-        if (isCheckingSync) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(strokeWidth = 6.dp)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        "Checking for cloud backup...",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(systemBarsPadding)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Progress indicator
-                if (currentStep > 0 && currentStep < steps.size - 1) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        LinearProgressIndicator(
-                            progress = { currentStep.toFloat() / (steps.size - 2) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Text(
-                            text = steps[currentStep],
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Step content
-                AnimatedContent(
-                    targetState = currentStep,
-                    transitionSpec = {
-                        if (targetState > initialState) {
-                            slideInHorizontally { width -> width } + fadeIn() togetherWith
-                            slideOutHorizontally { width -> -width } + fadeOut()
-                        } else {
-                            slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                            slideOutHorizontally { width -> width } + fadeOut()
-                        } using SizeTransform(clip = false)
-                    },
-                    label = "onboarding_step",
-                    modifier = Modifier.weight(1f)
-                ) { step ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when (step) {
-                            0 -> WelcomeStep()
-                            1 -> NameStep(
-                                firstName = firstName,
-                                lastName = lastName,
-                                onFirstNameChange = { firstName = it },
-                                onLastNameChange = { lastName = it },
-                                focusManager = focusManager
-                            )
-                            2 -> BirthdayStep(
-                                dateOfBirth = dateOfBirth,
-                                onDateSelected = { dateOfBirth = it }
-                            )
-                            3 -> GenderStep(
-                                selectedGender = gender,
-                                onGenderSelected = { gender = it }
-                            )
-                            4 -> DetailsStep(
-                                email = email,
-                                occupation = occupation,
-                                onEmailChange = { email = it },
-                                onOccupationChange = { occupation = it },
-                                focusManager = focusManager
-                            )
-                            5 -> CompleteStep(firstName = firstName)
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Navigation buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Back button
-                    if (currentStep > 0 && currentStep < steps.size - 1) {
-                        OutlinedButton(
-                            onClick = { currentStep-- },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(18.dp),
-                            contentPadding = PaddingValues(16.dp)
-                        ) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Back", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    
-                    // Next/Complete button
-                    Button(
-                        onClick = {
-                            if (currentStep == steps.size - 1) {
-                                // Complete onboarding
-                                val userProfile = UserProfile(
-                                    firstName = firstName.trim(),
-                                    lastName = lastName.trim(),
-                                    dateOfBirth = dateOfBirth,
-                                    gender = gender,
-                                    email = email.trim(),
-                                    occupation = occupation.trim(),
-                                    isOnboardingComplete = true
-                                )
-                                viewModel.saveUserProfile(userProfile)
-                                viewModel.setOnboardingComplete(true)
-                            } else {
-                                currentStep++
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(18.dp),
-                        enabled = isNextEnabled,
-                        contentPadding = PaddingValues(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(
-                            text = when (currentStep) {
-                                0 -> "Get Started"
-                                steps.size - 1 -> "Launch Planner"
-                                else -> "Continue"
-                            },
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = if (currentStep == steps.size - 1) Icons.Filled.RocketLaunch else Icons.Filled.ArrowForward,
-                            contentDescription = null
-                        )
-                    }
-                }
-                
-                // Skip option for optional steps
-                if (currentStep in 2..4) {
-                    TextButton(
-                        onClick = { currentStep++ },
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        Text("Skip for now", fontWeight = FontWeight.SemiBold)
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+@Composable
+fun ThemeCard(
+    mode: ThemeMode,
+    isSelected: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(120.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
+}
+
+@Composable
+fun FinishView(firstName: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f), CircleShape)
+                .padding(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Celebration,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                tint = MaterialTheme.colorScheme.tertiary
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(40.dp))
+        
+        Text(
+            text = "Welcome aboard, $firstName!",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Your personalized planner is ready. Let's make 2026 your best year yet.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+    }
+}
+
+@Composable
+fun OnboardingProgress(currentStep: OnboardingStep) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OnboardingStep.entries.forEach { step ->
+            val isActive = step.ordinal <= currentStep.ordinal
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(6.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isActive) MaterialTheme.colorScheme.primary 
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun AnimatedBackground() {
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition()
+    val offsetX by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(40000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val color1 = Color(0xFF6366F1).copy(alpha = 0.05f)
+        val color2 = Color(0xFFA855F7).copy(alpha = 0.05f)
+        val color3 = Color(0xFFEC4899).copy(alpha = 0.05f)
+        
+        drawCircle(
+            brush = Brush.radialGradient(listOf(color1, Color.Transparent)),
+            radius = 600f,
+            center = Offset(100f + (offsetX / 10f), 200f)
+        )
+        
+        drawCircle(
+            brush = Brush.radialGradient(listOf(color2, Color.Transparent)),
+            radius = 800f,
+            center = Offset(size.width - (offsetX / 5f), size.height / 2f)
+        )
+        
+        drawCircle(
+            brush = Brush.radialGradient(listOf(color3, Color.Transparent)),
+            radius = 700f,
+            center = Offset(offsetX / 8f, size.height - 100f)
+        )
+    }
+}
+
+enum class OnboardingStep {
+    WELCOME, PROFILE, THEME, FINISH
 }

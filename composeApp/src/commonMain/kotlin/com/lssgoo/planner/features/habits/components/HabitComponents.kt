@@ -28,6 +28,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.lssgoo.planner.ui.components.AppIcons
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Dialog
@@ -141,7 +144,12 @@ fun HabitDetailedItem(
                         .background(color.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(habit.icon, fontSize = 22.sp)
+                    Icon(
+                        imageVector = AppIcons.fromName(habit.icon),
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -171,15 +179,15 @@ fun HabitDetailedItem(
                     modifier = Modifier.size(44.dp)
                 ) {
                     if (isCompletedToday) {
-                        Text("✓", fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.Check, null)
                     } else {
                         // Show input icon for quant habits
                         val icon = when(habit.type) {
-                            HabitType.YES_NO -> "○"
-                            HabitType.QUANTITATIVE -> "+"
-                            HabitType.TIMER -> "▶"
+                            HabitType.YES_NO -> Icons.Default.RadioButtonUnchecked
+                            HabitType.QUANTITATIVE -> Icons.Default.Add
+                            HabitType.TIMER -> Icons.Default.PlayArrow
                         }
-                        Text(icon, fontSize = 18.sp)
+                        Icon(icon, null, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -194,9 +202,9 @@ fun HabitDetailedItem(
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatCompact("Streak", "${stats.currentStreak} days", "🔥")
-                StatCompact("Rate", "${(stats.completionRate * 100).toInt()}%", "📊")
-                StatCompact("Total", "${stats.totalCompletions}", "✅")
+                StatCompact("Streak", "${stats.currentStreak} days", Icons.Default.Whatshot)
+                StatCompact("Rate", "${(stats.completionRate * 100).toInt()}%", Icons.AutoMirrored.Filled.TrendingUp)
+                StatCompact("Total", "${stats.totalCompletions}", Icons.Default.CheckCircle)
             }
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -210,10 +218,15 @@ fun HabitDetailedItem(
 }
 
 @Composable
-fun StatCompact(label: String, value: String, emoji: String) {
+fun StatCompact(label: String, value: String, icon: ImageVector) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(emoji, fontSize = 12.sp)
-        Spacer(modifier = Modifier.width(4.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(6.dp))
         Column {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
             Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
@@ -266,7 +279,12 @@ fun HabitInteractionDialog(
                             modifier = Modifier.size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(habit.icon, fontSize = 24.sp)
+                                Icon(
+                                    imageVector = AppIcons.fromName(habit.icon),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.width(16.dp))

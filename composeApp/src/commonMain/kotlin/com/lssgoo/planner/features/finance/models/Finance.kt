@@ -17,20 +17,20 @@ enum class TransactionType {
 }
 
 @Serializable
-enum class TransactionCategory(val icon: String) {
-    FOOD("🍕"),
-    TRANSPORT("🚗"),
-    SHOPPING("🛍️"),
-    ENTERTAINMENT("🎬"),
-    HEALTH("💊"),
-    EDUCATION("📚"),
-    SALARY("💰"),
-    INVESTMENT("📈"),
-    BILL("📄"),
-    RENT("🏠"),
-    GIFT("🎁"),
-    OTHER("✨"),
-    DEBT_REPAYMENT("🤝")
+enum class TransactionCategory(val iconName: String) {
+    FOOD("Restaurant"),
+    TRANSPORT("DirectionsCar"),
+    SHOPPING("ShoppingBag"),
+    ENTERTAINMENT("Movie"),
+    HEALTH("MedicalServices"),
+    EDUCATION("School"),
+    SALARY("Payments"),
+    INVESTMENT("ShowChart"),
+    BILL("Receipt"),
+    RENT("Home"),
+    GIFT("CardGiftcard"),
+    OTHER("Category"),
+    DEBT_REPAYMENT("Handshake")
 }
 
 @Serializable

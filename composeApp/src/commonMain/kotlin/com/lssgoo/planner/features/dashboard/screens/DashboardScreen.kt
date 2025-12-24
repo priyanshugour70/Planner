@@ -34,6 +34,7 @@ fun DashboardScreen(
     onViewAllGoals: () -> Unit,
     onViewAllTasks: () -> Unit,
     onViewAllHabits: () -> Unit,
+    onViewAllFinance: () -> Unit,
     onViewAllJournal: () -> Unit,
     onViewAllNotes: () -> Unit,
     onSearchClick: () -> Unit,
@@ -161,6 +162,7 @@ fun DashboardScreen(
                         subtitle = "${stats.completedMilestones}/${stats.totalMilestones} milestones",
                         icon = AppIcons.TrendingUp,
                         gradientColors = GradientColors.purpleBlue,
+                        onClick = onViewAllGoals,
                         modifier = Modifier.width(180.dp)
                     )
                 }
@@ -171,6 +173,7 @@ fun DashboardScreen(
                         subtitle = "completed",
                         icon = AppIcons.Tasks,
                         gradientColors = GradientColors.cyanGreen,
+                        onClick = onViewAllTasks,
                         modifier = Modifier.width(180.dp)
                     )
                 }
@@ -181,6 +184,7 @@ fun DashboardScreen(
                         subtitle = "In: ₹${String.format("%.0f", financeStats.totalIncome)}",
                         icon = Icons.Default.AccountBalanceWallet,
                         gradientColors = GradientColors.oceanBlue,
+                        onClick = onViewAllFinance,
                         modifier = Modifier.width(180.dp)
                     )
                 }
@@ -192,6 +196,7 @@ fun DashboardScreen(
                         subtitle = "Keep it up!",
                         icon = Icons.Default.Refresh,
                         gradientColors = GradientColors.orangePink,
+                        onClick = onViewAllHabits,
                         modifier = Modifier.width(180.dp)
                     )
                 }
@@ -387,7 +392,7 @@ fun DaySummaryCard(
     val habitsLeft = stats.totalHabitsToday - stats.habitsCompletedToday
     
     val message = when {
-        tasksLeft <= 0 && habitsLeft <= 0 -> "You're all set for today! \uD83C\uDF89"
+        tasksLeft <= 0 && habitsLeft <= 0 -> "You're all set for today!"
         tasksLeft <= 0 -> "Great job! Just $habitsLeft habits remaining."
         habitsLeft <= 0 -> "Habits done! Focus on your $tasksLeft tasks."
         else -> "Good Morning! You have $tasksLeft tasks and $habitsLeft habits left."
@@ -405,7 +410,7 @@ fun DaySummaryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Filled.WbSunny,
+                imageVector = if (tasksLeft <= 0 && habitsLeft <= 0) Icons.Filled.Celebration else Icons.Filled.WbSunny,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(32.dp)
@@ -417,12 +422,14 @@ fun DaySummaryCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }

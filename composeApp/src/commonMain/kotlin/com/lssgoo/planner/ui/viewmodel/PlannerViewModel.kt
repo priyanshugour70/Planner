@@ -268,11 +268,11 @@ class PlannerViewModel(
 
     private fun ensureDefaultHabits(currentHabits: List<Habit>) {
         val defaults = listOf(
-            Habit(title = "Drink Water", description = "Stay hydrated with 8 glasses a day", icon = "💧", iconColor = 0xFF2196F3, type = HabitType.QUANTITATIVE, targetValue = 8f, unit = "glasses", timeOfDay = HabitTimeOfDay.ANY_TIME, goalId = null),
-            Habit(title = "Read Books", description = "Read at least 20 pages", icon = "📚", iconColor = 0xFF9C27B0, type = HabitType.QUANTITATIVE, targetValue = 20f, unit = "pages", timeOfDay = HabitTimeOfDay.EVENING, goalId = null),
-            Habit(title = "Morning Workout", description = "Start the day with energy", icon = "💪", iconColor = 0xFFF44336, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
-            Habit(title = "Meditation", description = "Mindfulness session", icon = "🧘", iconColor = 0xFF4CAF50, type = HabitType.TIMER, targetValue = 10f, unit = "mins", timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
-            Habit(title = "Journaling", description = "Reflect on the day", icon = "✍️", iconColor = 0xFFFFC107, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.EVENING, goalId = null)
+            Habit(title = "Drink Water", description = "Stay hydrated with 8 glasses a day", icon = "WaterDrop", iconColor = 0xFF2196F3, type = HabitType.QUANTITATIVE, targetValue = 8f, unit = "glasses", timeOfDay = HabitTimeOfDay.ANY_TIME, goalId = null),
+            Habit(title = "Read Books", description = "Read at least 20 pages", icon = "AutoMirrored.Filled.MenuBook", iconColor = 0xFF9C27B0, type = HabitType.QUANTITATIVE, targetValue = 20f, unit = "pages", timeOfDay = HabitTimeOfDay.EVENING, goalId = null),
+            Habit(title = "Morning Workout", description = "Start the day with energy", icon = "FitnessCenter", iconColor = 0xFFF44336, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
+            Habit(title = "Meditation", description = "Mindfulness session", icon = "SelfImprovement", iconColor = 0xFF4CAF50, type = HabitType.TIMER, targetValue = 10f, unit = "mins", timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
+            Habit(title = "Journaling", description = "Reflect on the day", icon = "HistoryEdu", iconColor = 0xFFFFC107, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.EVENING, goalId = null)
         )
         
         val missingDefaults = defaults.filter { default -> 
@@ -503,7 +503,7 @@ class PlannerViewModel(
             if (isDay(txn.date)) {
                 items.add(CalendarItem(
                     id = "txn_${txn.id}",
-                    title = "Finance: ${txn.category.icon} ${txn.type} ₹${txn.amount}",
+                    title = "Finance: ${txn.category.name} ${txn.type} ₹${txn.amount}",
                     description = txn.note,
                     date = d,
                     type = CalendarItemType.FINANCE,

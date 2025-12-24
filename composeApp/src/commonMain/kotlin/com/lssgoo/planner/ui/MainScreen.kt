@@ -94,6 +94,7 @@ fun MainScreen(viewModel: PlannerViewModel) {
                                 onViewAllGoals = { navController.navigate(Routes.GOALS) },
                                 onViewAllTasks = { navController.navigate(Routes.TASKS) },
                                 onViewAllHabits = { navController.navigate(Routes.HABITS) },
+                                onViewAllFinance = { navController.navigate(Routes.FINANCE) },
                                 onViewAllJournal = { navController.navigate(Routes.JOURNAL) },
                                 onViewAllNotes = { navController.navigate(Routes.NOTES) },
                                 onSearchClick = { navController.navigate(Routes.SEARCH) }

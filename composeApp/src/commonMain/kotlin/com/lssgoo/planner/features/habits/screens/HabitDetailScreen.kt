@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lssgoo.planner.features.habits.models.*
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import com.lssgoo.planner.ui.components.AppIcons
 import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
 import com.lssgoo.planner.util.KmpTimeUtils
 import kotlinx.datetime.Clock
@@ -93,9 +94,11 @@ fun HabitDetailScreen(
             TopAppBar(
                 title = { 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            habit.icon,
-                            fontSize = 24.sp
+                        Icon(
+                            imageVector = AppIcons.fromName(habit.icon),
+                            contentDescription = null,
+                            tint = habitColor,
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
@@ -151,7 +154,12 @@ fun HabitDetailScreen(
                                     .background(habitColor.copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(habit.icon, fontSize = 28.sp)
+                                Icon(
+                                    imageVector = AppIcons.fromName(habit.icon),
+                                    contentDescription = null,
+                                    tint = habitColor,
+                                    modifier = Modifier.size(28.dp)
+                                )
                             }
                             
                             Spacer(modifier = Modifier.width(16.dp))

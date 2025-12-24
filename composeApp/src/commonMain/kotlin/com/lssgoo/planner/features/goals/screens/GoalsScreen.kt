@@ -19,6 +19,8 @@ import com.lssgoo.planner.data.model.GoalCategory
 import com.lssgoo.planner.features.goals.components.*
 import com.lssgoo.planner.ui.components.AppIcons
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
 /**
  * Goals list screen - follows SRP and size constraints
@@ -82,7 +84,12 @@ fun GoalsScreen(
                             )
                         }
                         
-                        IconButton(onClick = { sortByDate = !sortByDate }) {
+                        val haptic = LocalHapticFeedback.current
+                        
+                        IconButton(onClick = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            sortByDate = !sortByDate 
+                        }) {
                             Icon(
                                 imageVector = if (sortByDate) Icons.Default.SortByAlpha else Icons.Default.CalendarToday,
                                 contentDescription = "Sort",
@@ -94,8 +101,12 @@ fun GoalsScreen(
             }
         },
         floatingActionButton = {
+            val haptic = LocalHapticFeedback.current
             ExtendedFloatingActionButton(
-                onClick = { showAddGoalDialog = true },
+                onClick = { 
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    showAddGoalDialog = true 
+                },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp),

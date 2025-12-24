@@ -14,6 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.automirrored.outlined.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
@@ -293,7 +295,12 @@ fun FinanceDashboard(stats: FinanceStats) {
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text(bill.category.icon, fontSize = 24.sp)
+                                Icon(
+                                    imageVector = AppIcons.fromName(bill.category.iconName),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(bill.category.name.lowercase().replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text("₹${bill.amount.toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
@@ -322,7 +329,12 @@ fun FinanceDashboard(stats: FinanceStats) {
                             .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("🎯", fontSize = 20.sp)
+                        Icon(
+                            imageVector = AppIcons.Target,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -507,7 +519,12 @@ fun DebtItem(debt: Transaction, onSettle: (String) -> Unit) {
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(if (debt.type == TransactionType.BORROWED) "↗️" else "↙️", fontSize = 18.sp)
+                Icon(
+                    imageVector = if (debt.type == TransactionType.BORROWED) Icons.Default.ArrowOutward else Icons.AutoMirrored.Filled.CallReceived,
+                    contentDescription = null,
+                    tint = if (debt.type == TransactionType.BORROWED) FinanceColors.expense else FinanceColors.income,
+                    modifier = Modifier.size(20.dp)
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -560,7 +577,12 @@ fun TransactionItem(transaction: Transaction, onClick: (() -> Unit)? = null) {
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(transaction.category.icon, fontSize = 24.sp)
+                Icon(
+                    imageVector = AppIcons.fromName(transaction.category.iconName),
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(24.dp)
+                )
                 if (transaction.isRecurring) {
                     Icon(
                         Icons.Default.Refresh,
@@ -630,7 +652,12 @@ fun BudgetProgressItem(budget: Budget, showDelete: Boolean = false, onDelete: ((
                         modifier = Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(budget.category?.icon ?: "💰", fontSize = 16.sp)
+                        Icon(
+                            imageVector = budget.category?.let { AppIcons.fromName(it.iconName) } ?: Icons.Default.Payments,
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -996,7 +1023,12 @@ fun AddTransactionDialog(onDismiss: () -> Unit, onAdd: (Transaction) -> Unit) {
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(category.icon, fontSize = 16.sp)
+                                        Icon(
+                                            imageVector = AppIcons.fromName(category.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             category.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -1027,7 +1059,12 @@ fun AddTransactionDialog(onDismiss: () -> Unit, onAdd: (Transaction) -> Unit) {
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(category.icon, fontSize = 16.sp)
+                                        Icon(
+                                            imageVector = AppIcons.fromName(category.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             category.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -1228,7 +1265,11 @@ fun AddBudgetDialog(onDismiss: () -> Unit, onAdd: (Budget) -> Unit) {
                                     label = { Text(category.name.lowercase().capitalize()) },
                                     shape = RoundedCornerShape(12.dp),
                                     leadingIcon = {
-                                        Text(category.icon, fontSize = 16.sp)
+                                        Icon(
+                                            imageVector = AppIcons.fromName(category.iconName),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
                                     }
                                 )
                             }

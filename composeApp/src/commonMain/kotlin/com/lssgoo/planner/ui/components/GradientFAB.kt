@@ -22,6 +22,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.lssgoo.planner.ui.theme.GradientColors
 
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.animation.core.*
+import androidx.compose.ui.graphics.graphicsLayer
+
 @Composable
 fun GradientFAB(
     onClick: () -> Unit,
@@ -29,6 +34,9 @@ fun GradientFAB(
     gradientColors: List<Color> = GradientColors.purpleBlue,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    
     Box(
         modifier = modifier
             .size(56.dp)
@@ -38,9 +46,12 @@ fun GradientFAB(
                 Brush.linearGradient(gradientColors)
             )
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = ripple(bounded = true, color = Color.White),
-                onClick = onClick
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
+                }
             ),
         contentAlignment = Alignment.Center
     ) {

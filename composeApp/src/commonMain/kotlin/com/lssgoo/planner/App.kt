@@ -24,6 +24,7 @@ import com.lssgoo.planner.di.createSettings
 import com.lssgoo.planner.ui.theme.PlannerTheme
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
 import com.lssgoo.planner.ui.MainScreen
+import com.lssgoo.planner.features.onboarding.screens.OnboardingScreen
 
 @Composable
 fun App() {
@@ -34,7 +35,6 @@ fun App() {
     val settings by viewModel.settings.collectAsState()
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState()
     val isCheckingSync by viewModel.isCheckingSync.collectAsState()
-    val userProfile by viewModel.userProfile.collectAsState()
     
     PlannerTheme(themeMode = settings.themeMode) {
         Surface(
@@ -50,13 +50,7 @@ fun App() {
                     CircularProgressIndicator()
                 }
             } else if (!isOnboardingComplete) {
-                // TODO: Show onboarding screen
-                OnboardingPlaceholder(
-                    onComplete = { profile ->
-                        viewModel.saveUserProfile(profile)
-                        viewModel.setOnboardingComplete()
-                    }
-                )
+                OnboardingScreen(viewModel = viewModel)
             } else {
                 // Main app content
                 MainScreen(viewModel = viewModel)
@@ -65,29 +59,6 @@ fun App() {
     }
 }
 
-@Composable
-fun OnboardingPlaceholder(onComplete: (com.lssgoo.planner.data.model.UserProfile) -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Welcome to Planner! 🎯",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    onComplete(com.lssgoo.planner.data.model.UserProfile(firstName = "User"))
-                }
-            ) {
-                Text("Get Started")
-            }
-        }
-    }
-}
+
 
 

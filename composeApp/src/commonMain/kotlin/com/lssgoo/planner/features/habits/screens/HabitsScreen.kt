@@ -214,10 +214,7 @@ fun AddHabitDialog(
     var targetValue by remember { mutableStateOf("") }
     var unit by remember { mutableStateOf("") }
     var selectedColor by remember { mutableLongStateOf(0xFF4DD0E1) }
-    var selectedIcon by remember { mutableStateOf("✨") }
-
-    val icons = listOf("✨", "💧", "📚", "💪", "🧘", "💊", "💰", "🏃", "🍳", "💤")
-    val colors = listOf(0xFFF44336, 0xFFE91E63, 0xFF9C27B0, 0xFF2196F3, 0xFF4CAF50, 0xFFFFC107, 0xFFFF5722, 0xFF00BCD4)
+    var selectedIcon by remember { mutableStateOf("Category") }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -252,12 +249,17 @@ fun AddHabitDialog(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(14.dp))
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
                                     .background(Color.White.copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(selectedIcon, fontSize = 24.sp)
+                                Icon(
+                                    imageVector = AppIcons.fromName(selectedIcon),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(28.dp)
+                                )
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
@@ -298,6 +300,13 @@ fun AddHabitDialog(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         )
+                    )
+                    
+                    // Icon Selector Section (NEW)
+                    IconSelector(
+                        selectedIcon = selectedIcon,
+                        onIconSelected = { selectedIcon = it },
+                        selectedColor = Color(selectedColor)
                     )
                     
                     // Type Selector Section
@@ -400,41 +409,6 @@ fun AddHabitDialog(
                         }
                     }
                     
-                    // Icon Picker Section
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            "Choose Icon",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            icons.forEach { icon ->
-                                val isSelected = selectedIcon == icon
-                                Surface(
-                                    onClick = { selectedIcon = icon },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(
-                                        2.dp, MaterialTheme.colorScheme.primary
-                                    ) else null,
-                                    modifier = Modifier.size(48.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(icon, fontSize = 22.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
                     // Color Picker Section
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
@@ -448,7 +422,8 @@ fun AddHabitDialog(
                                 .horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            colors.forEach { color ->
+                            val habitColors = listOf(0xFFF44336, 0xFFE91E63, 0xFF9C27B0, 0xFF673AB7, 0xFF3F51B5, 0xFF2196F3, 0xFF03A9F4, 0xFF00BCD4, 0xFF009688, 0xFF4CAF50, 0xFF8BC34A, 0xFFCDDC39, 0xFFFFEB3B, 0xFFFFC107, 0xFFFF9800, 0xFFFF5722)
+                            habitColors.forEach { color ->
                                 val isSelected = selectedColor == color
                                 Box(
                                     modifier = Modifier

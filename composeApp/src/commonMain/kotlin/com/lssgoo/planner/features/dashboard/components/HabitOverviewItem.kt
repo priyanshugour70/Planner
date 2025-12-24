@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lssgoo.planner.features.habits.models.Habit
 
+import com.lssgoo.planner.ui.components.AppIcons
+import androidx.compose.material3.Icon
+
 @Composable
 fun HabitOverviewItem(habit: Habit) {
     Column(
@@ -30,7 +33,12 @@ fun HabitOverviewItem(habit: Habit) {
                 .border(1.dp, Color(habit.iconColor).copy(alpha = 0.3f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(habit.icon, fontSize = 20.sp)
+            Icon(
+                imageVector = AppIcons.fromName(habit.icon),
+                contentDescription = null,
+                tint = Color(habit.iconColor),
+                modifier = Modifier.size(24.dp)
+            )
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(

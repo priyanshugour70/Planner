@@ -56,70 +56,60 @@ enum class BottomNavDestination(
     val route: String,
     val label: String,
     val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val emoji: String = "" // Deprecated: use icons instead
+    val unselectedIcon: ImageVector
 ) {
     DASHBOARD(
         route = Routes.DASHBOARD,
         label = "Home",
         selectedIcon = Icons.Filled.Dashboard,
-        unselectedIcon = Icons.Outlined.Dashboard,
-        emoji = "🏠"
+        unselectedIcon = Icons.Outlined.Dashboard
     ),
     GOALS(
         route = Routes.GOALS,
         label = "Goals",
         selectedIcon = Icons.Filled.EmojiEvents,
-        unselectedIcon = Icons.Outlined.EmojiEvents,
-        emoji = "🎯"
+        unselectedIcon = Icons.Outlined.EmojiEvents
     ),
     TASKS(
         route = Routes.TASKS,
         label = "Tasks",
         selectedIcon = Icons.Filled.TaskAlt,
-        unselectedIcon = Icons.Outlined.TaskAlt,
-        emoji = "✅"
+        unselectedIcon = Icons.Outlined.TaskAlt
     ),
     FINANCE(
         route = Routes.FINANCE,
         label = "Finance",
         selectedIcon = Icons.Filled.AccountBalanceWallet,
-        unselectedIcon = Icons.Outlined.AccountBalanceWallet,
-        emoji = "💰"
+        unselectedIcon = Icons.Outlined.AccountBalanceWallet
     ),
     HABITS(
         route = Routes.HABITS,
         label = "Habits",
         selectedIcon = Icons.Filled.CheckCircle,
-        unselectedIcon = Icons.Outlined.CheckCircle,
-        emoji = "🔄"
+        unselectedIcon = Icons.Outlined.CheckCircle
     ),
     JOURNAL(
         route = Routes.JOURNAL,
         label = "Journal",
         selectedIcon = Icons.Filled.Book,
-        unselectedIcon = Icons.Outlined.Book,
-        emoji = "📔"
+        unselectedIcon = Icons.Outlined.Book
     ),
     NOTES(
         route = Routes.NOTES,
         label = "Notes",
         selectedIcon = Icons.AutoMirrored.Filled.StickyNote2,
-        unselectedIcon = Icons.AutoMirrored.Outlined.StickyNote2,
-        emoji = "📝"
+        unselectedIcon = Icons.AutoMirrored.Outlined.StickyNote2
     ),
     CALENDAR(
         route = Routes.CALENDAR,
         label = "Calendar",
         selectedIcon = Icons.Filled.CalendarMonth,
-        unselectedIcon = Icons.Outlined.CalendarMonth,
-        emoji = "📅"
+        unselectedIcon = Icons.Outlined.CalendarMonth
     ),
     SETTINGS(
         route = Routes.SETTINGS,
         label = "Settings",
         selectedIcon = Icons.Filled.Settings,
-        unselectedIcon = Icons.Outlined.Settings,
-        emoji = "⚙️"
+        unselectedIcon = Icons.Outlined.Settings
     )
 }
