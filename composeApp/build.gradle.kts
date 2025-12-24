@@ -32,9 +32,10 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.coil.compose)
+            implementation("io.ktor:ktor-client-android:2.3.9")
             implementation(libs.aws.android.sdk.s3)
             implementation(libs.aws.android.sdk.core)
-            implementation(libs.coil.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -52,6 +53,9 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.no.arg)
             implementation(compose.materialIconsExtended)
+        }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:2.3.9")
         }
     }
 }

@@ -1,5 +1,5 @@
 // Models are now in commonMain. The aliases are already correct if they use the full package.
-@file:JvmName("ModelsCommon")
+
 package com.lssgoo.planner.data.model
 
 // Re-export Goals models

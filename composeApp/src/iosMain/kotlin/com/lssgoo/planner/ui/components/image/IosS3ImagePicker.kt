@@ -26,20 +26,10 @@ actual fun S3ImagePicker(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (currentImageUrl != null) {
-            // Placeholder for image loading (Coil not available in KMP common yet for this version)
-             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = shape,
-                modifier = Modifier.matchParentSize()
-            ) {
-                 Box(contentAlignment = Alignment.Center) {
-                     Text("📸 View Image", style = MaterialTheme.typography.bodySmall)
-                 }
-            }
+            Text("📸 Image")
         } else {
             placeholder()
         }
-        // TODO: Implement UIImagePickerController
     }
 }
 
@@ -57,25 +47,9 @@ actual fun RectangularImagePicker(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
          if (currentImageUrl != null) {
-              Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(cornerRadius),
-                modifier = Modifier.matchParentSize()
-            ) {
-                 Box(contentAlignment = Alignment.Center) {
-                     Text("📸 View Image", style = MaterialTheme.typography.bodySmall)
-                 }
-            }
+             Text("📸 Image")
         } else {
-             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(cornerRadius),
-                modifier = Modifier.matchParentSize()
-            ) {
-                 Box(contentAlignment = Alignment.Center) {
-                     Text("Tap to add image", style = MaterialTheme.typography.bodyMedium)
-                 }
-            }
+             Text("Tap to add image")
         }
     }
 }

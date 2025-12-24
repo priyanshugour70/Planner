@@ -25,6 +25,7 @@ import com.lssgoo.planner.features.dashboard.components.*
 import com.lssgoo.planner.features.tasks.components.TaskItem
 import com.lssgoo.planner.util.KmpDateFormatter
 import com.lssgoo.planner.util.KmpTimeUtils
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,8 +181,8 @@ fun DashboardScreen(
                 item {
                     StatsCard(
                         title = "Balance",
-                        value = "₹${String.format("%.0f", financeStats.currentBalance)}",
-                        subtitle = "In: ₹${String.format("%.0f", financeStats.totalIncome)}",
+                        value = "₹${financeStats.currentBalance.roundToInt()}",
+                        subtitle = "In: ₹${financeStats.totalIncome.roundToInt()}",
                         icon = Icons.Default.AccountBalanceWallet,
                         gradientColors = GradientColors.oceanBlue,
                         onClick = onViewAllFinance,

@@ -55,7 +55,6 @@ fun FinanceScreen(
     var showAddBudgetDialog by remember { mutableStateOf(false) }
     
     val tabs = listOf("Dashboard", "Analysis", "Transactions", "Budgets", "Debts")
-    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -973,7 +972,7 @@ fun AddTransactionDialog(onDismiss: () -> Unit, onAdd: (Transaction) -> Unit) {
 
                     // Receipt Button
                     OutlinedButton(
-                        onClick = { receiptUri = "mock_uri_${System.currentTimeMillis()}" },
+                        onClick = { receiptUri = "mock_uri_${KmpTimeUtils.currentTimeMillis()}" },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(
