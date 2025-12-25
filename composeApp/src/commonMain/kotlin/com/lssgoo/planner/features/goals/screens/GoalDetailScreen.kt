@@ -19,6 +19,7 @@ import com.lssgoo.planner.features.goals.components.*
 import com.lssgoo.planner.features.goals.models.Milestone
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
 import com.lssgoo.planner.ui.components.AppIcons
+import com.lssgoo.planner.ui.components.dialogs.QuickConfirmDialog
 
 /**
  * Goal Detail screen - follows SRP
@@ -36,6 +37,7 @@ fun GoalDetailScreen(
     
     var showEditGoalDialog by remember { mutableStateOf(false) }
     var showAddMilestoneDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     var milestoneToEdit by remember { mutableStateOf<Milestone?>(null) }
     var milestoneToComplete by remember { mutableStateOf<Milestone?>(null) }
     
@@ -77,8 +79,7 @@ fun GoalDetailScreen(
                             Icon(Icons.Default.Edit, contentDescription = "Edit Goal")
                         }
                         IconButton(onClick = { 
-                            viewModel.deleteGoal(goal.id)
-                            onBack()
+                            showDeleteConfirm = true
                         }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete Goal", tint = MaterialTheme.colorScheme.error)
                         }
@@ -113,7 +114,14 @@ fun GoalDetailScreen(
                 )
             }
             
-            item { Spacer(modifier = Modifier.height(24.dp)) }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                MilestoneProgressChart(
+                    milestones = goal.milestones,
+                    goalColor = Color(goal.color),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
             
             item {
                 Row(
@@ -214,6 +222,20 @@ fun GoalDetailScreen(
                 viewModel.updateMilestone(goal.id, finishedMilestone)
                 milestoneToComplete = null
             }
+        )
+    }
+
+
+    if (showDeleteConfirm) {
+        QuickConfirmDialog(
+            title = "Delete Goal?",
+            message = "Are you sure you want to delete this goal? This action cannot be undone.",
+            onConfirm = {
+                viewModel.deleteGoal(goal.id)
+                showDeleteConfirm = false
+                onBack()
+            },
+            onDismiss = { showDeleteConfirm = false }
         )
     }
 }

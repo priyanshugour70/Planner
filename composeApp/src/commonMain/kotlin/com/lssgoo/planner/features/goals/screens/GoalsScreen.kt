@@ -27,6 +27,12 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+enum class SortOrder {
+    DEFAULT, DATE_ASC, NAME_ASC
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun GoalsScreen(
     viewModel: PlannerViewModel,
     onGoalClick: (String) -> Unit,
@@ -35,17 +41,19 @@ fun GoalsScreen(
     val goals by viewModel.goals.collectAsState()
     var selectedCategory by remember { mutableStateOf<GoalCategory?>(null) }
     var showAddGoalDialog by remember { mutableStateOf(false) }
-    var sortByDate by remember { mutableStateOf(false) }
+    var sortOrder by remember { mutableStateOf(SortOrder.DEFAULT) }
     
-    val filteredGoals = remember(goals, selectedCategory, sortByDate) {
+    val filteredGoals = remember(goals, selectedCategory, sortOrder) {
         var result = if (selectedCategory != null) {
             goals.filter { it.category == selectedCategory }
         } else {
             goals
         }
         
-        if (sortByDate) {
-            result = result.sortedBy { it.targetDate ?: Long.MAX_VALUE }
+        result = when(sortOrder) {
+            SortOrder.DATE_ASC -> result.sortedBy { it.targetDate ?: Long.MAX_VALUE }
+            SortOrder.NAME_ASC -> result.sortedBy { it.title }
+            SortOrder.DEFAULT -> result.sortedBy { it.number }
         }
         result
     }
@@ -86,14 +94,23 @@ fun GoalsScreen(
                         
                         val haptic = LocalHapticFeedback.current
                         
+                        
                         IconButton(onClick = { 
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            sortByDate = !sortByDate 
+                            sortOrder = when(sortOrder) {
+                                SortOrder.DEFAULT -> SortOrder.DATE_ASC
+                                SortOrder.DATE_ASC -> SortOrder.NAME_ASC
+                                SortOrder.NAME_ASC -> SortOrder.DEFAULT
+                            }
                         }) {
                             Icon(
-                                imageVector = if (sortByDate) Icons.Default.SortByAlpha else Icons.Default.CalendarToday,
+                                imageVector = when(sortOrder) {
+                                    SortOrder.DATE_ASC -> Icons.Default.CalendarToday
+                                    SortOrder.NAME_ASC -> Icons.Default.SortByAlpha
+                                    SortOrder.DEFAULT -> Icons.Default.FilterList
+                                },
                                 contentDescription = "Sort",
-                                tint = if (sortByDate) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

@@ -52,7 +52,13 @@ enum class GoalCategory(val displayName: String, val iconName: String) {
     DISCIPLINE("Discipline", "Schedule"),
     FINANCE("Finance", "Savings"),
     STARTUP("Startup", "RocketLaunch"),
-    MINDFULNESS("Mindfulness", "SelfImprovement")
+    MINDFULNESS("Mindfulness", "SelfImprovement"),
+    TRAVEL("Travel & Adventure", "Flight"),
+    RELATIONSHIPS("Relationships", "Favorite"),
+    SPIRITUALITY("Spirituality", "SelfImprovement"),
+    SOCIAL("Social Impact", "Public"),
+    CREATIVITY("Creativity", "Brush"),
+    ENVIRONMENT("Environment", "Eco")
 }
 
 /**
