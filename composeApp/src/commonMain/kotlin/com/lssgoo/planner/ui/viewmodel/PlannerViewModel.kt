@@ -7,6 +7,7 @@ import com.lssgoo.planner.data.repository.*
 import com.lssgoo.planner.util.Resource
 import com.lssgoo.planner.features.habits.models.*
 import com.lssgoo.planner.util.KmpTimeUtils
+import com.lssgoo.planner.data.InitialData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -186,7 +187,12 @@ class PlannerViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             noteRepository.getNotes().collect { result ->
                 if (result is Resource.Success) {
-                    notes.value = result.data
+                    val loaded = result.data
+                    if (loaded.isEmpty()) {
+                        ensureDefaultNotes()
+                    } else {
+                        notes.value = loaded
+                    }
                 }
             }
         }
@@ -196,7 +202,12 @@ class PlannerViewModel(
         viewModelScope.launch(Dispatchers.Default) {
              taskRepository.getTasks().collect { result ->
                  if (result is Resource.Success) {
-                     tasks.value = result.data
+                     val loaded = result.data
+                     if (loaded.isEmpty()) {
+                         ensureDefaultTasks()
+                     } else {
+                         tasks.value = loaded
+                     }
                  }
              }
         }
@@ -226,7 +237,14 @@ class PlannerViewModel(
         // Transactions
         viewModelScope.launch(Dispatchers.Default) {
             financeRepository.getTransactions().collect { result ->
-                if (result is Resource.Success) transactions.value = result.data
+                if (result is Resource.Success) {
+                    val current = result.data
+                    if (current.isEmpty()) {
+                        ensureDefaultTransactions()
+                    } else {
+                        transactions.value = current
+                    }
+                }
             }
         }
         
@@ -236,7 +254,7 @@ class PlannerViewModel(
                 if (result is Resource.Success) {
                     val current = result.data
                     if (current.isEmpty()) {
-                        ensureDefaultBudgets() // Must update this to use repo save
+                        ensureDefaultBudgets()
                     } else {
                         budgets.value = current
                     }
@@ -329,34 +347,39 @@ class PlannerViewModel(
     // DEFAULT DATA GENERATORS
     
     private suspend fun ensureDefaultBudgets() {
-        val defaults = listOf(
-            Budget(category = TransactionCategory.FOOD, limitAmount = 500.0, spentAmount = 0.0),
-            Budget(category = TransactionCategory.TRANSPORT, limitAmount = 300.0, spentAmount = 0.0),
-            Budget(category = TransactionCategory.ENTERTAINMENT, limitAmount = 200.0, spentAmount = 0.0),
-            Budget(category = TransactionCategory.SHOPPING, limitAmount = 400.0, spentAmount = 0.0)
-        )
+        val defaults = InitialData.getExampleBudgets()
         defaults.forEach { financeRepository.saveBudget(it) }
     }
     
+    private suspend fun ensureDefaultTransactions() {
+        val defaults = InitialData.getExampleTransactions()
+        defaults.forEach { financeRepository.saveTransaction(it) }
+    }
+    
     private suspend fun ensureDefaultGoals() {
-        val defaults = DefaultGoals.goals
+        // Updated to use InitialData
+        val defaults = InitialData.getGoals()
         defaults.forEach { goalRepository.saveGoal(it) }
     }
 
     private suspend fun ensureDefaultHabits(currentHabits: List<Habit>) {
-        val defaults = listOf(
-            Habit(title = "Drink Water", description = "Stay hydrated with 8 glasses a day", icon = "WaterDrop", iconColor = 0xFF2196F3, type = HabitType.QUANTITATIVE, targetValue = 8f, unit = "glasses", timeOfDay = HabitTimeOfDay.ANY_TIME, goalId = null),
-            Habit(title = "Read Books", description = "Read at least 20 pages", icon = "AutoMirrored.Filled.MenuBook", iconColor = 0xFF9C27B0, type = HabitType.QUANTITATIVE, targetValue = 20f, unit = "pages", timeOfDay = HabitTimeOfDay.EVENING, goalId = null),
-            Habit(title = "Morning Workout", description = "Start the day with energy", icon = "FitnessCenter", iconColor = 0xFFF44336, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
-            Habit(title = "Meditation", description = "Mindfulness session", icon = "SelfImprovement", iconColor = 0xFF4CAF50, type = HabitType.TIMER, targetValue = 10f, unit = "mins", timeOfDay = HabitTimeOfDay.MORNING, goalId = null),
-            Habit(title = "Journaling", description = "Reflect on the day", icon = "HistoryEdu", iconColor = 0xFFFFC107, type = HabitType.YES_NO, timeOfDay = HabitTimeOfDay.EVENING, goalId = null)
-        )
+        val defaults = InitialData.getHabits()
         
         val missingDefaults = defaults.filter { default -> 
             currentHabits.none { it.title == default.title } 
         }
         
         missingDefaults.forEach { habitRepository.saveHabit(it) }
+    }
+    
+    private suspend fun ensureDefaultTasks() {
+        val defaults = InitialData.getTasks()
+        defaults.forEach { taskRepository.saveTask(it) }
+    }
+    
+    private suspend fun ensureDefaultNotes() {
+        val defaults = InitialData.getNotes()
+        defaults.forEach { noteRepository.saveNote(it) }
     }
 
     // JOURNAL LOGIC
