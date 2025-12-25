@@ -180,6 +180,25 @@ fun MainScreen(viewModel: PlannerViewModel) {
                     onBack = { navController.popBackStack() }
                 )
             }
+            
+            // Settings Pages
+            composable(Routes.VERSION_HISTORY) {
+                com.lssgoo.planner.features.settings.screens.VersionHistoryScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.ABOUT_DEVELOPER) {
+                com.lssgoo.planner.features.settings.screens.AboutDeveloperScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.PRIVACY_POLICY) {
+                com.lssgoo.planner.features.settings.screens.PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.TERMS_OF_SERVICE) {
+                com.lssgoo.planner.features.settings.screens.TermsOfServiceScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.APPLOCK) {
+                // Placeholder for App Lock Setup
+                androidx.compose.material3.Text("App Lock Setup Coming Soon", modifier = Modifier.padding(16.dp))
+                // In real app, this would be PinSetupScreen
+            }
         }
     }
 }

@@ -360,7 +360,7 @@ fun DashboardScreen(
         }
 
         item {
-            GoalBarChart(
+            DashboardGoalPieChart(
                 goals = goals,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -369,8 +369,17 @@ fun DashboardScreen(
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
         item {
-            FinanceSummaryChart(
+            DashboardFinanceLineChart(
                 stats = financeStats,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+        
+        item { Spacer(modifier = Modifier.height(24.dp)) }
+        
+        item {
+            DashboardHabitBarChart(
+                habits = habits,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }

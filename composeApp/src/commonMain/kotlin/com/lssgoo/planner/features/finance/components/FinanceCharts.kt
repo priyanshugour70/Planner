@@ -1,7 +1,5 @@
 package com.lssgoo.planner.features.finance.components
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -11,14 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lssgoo.planner.features.finance.models.TransactionCategory
+import com.lssgoo.planner.ui.components.charts.*
 import com.lssgoo.planner.ui.theme.FinanceColors
 
 @Composable
@@ -29,9 +25,15 @@ fun SpendingPieChart(
     val total = data.values.sum()
     if (total == 0.0) return
 
-    val animatedProgress = remember { Animatable(0f) }
-    LaunchedEffect(data) {
-        animatedProgress.animateTo(1f, animationSpec = tween(1000, easing = FastOutSlowInEasing))
+    val chartData = remember(data) {
+        val pieData = data.entries.map { (cat, value) ->
+            ChartDataPoint(
+                label = cat.name,
+                value = value.toFloat(),
+                color = getCategoryColor(cat)
+            )
+        }
+        PieChartData(pieData)
     }
 
     Row(
@@ -40,20 +42,11 @@ fun SpendingPieChart(
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Box(modifier = Modifier.size(160.dp), contentAlignment = Alignment.Center) {
-            Canvas(modifier = Modifier.size(140.dp)) {
-                var startAngle = -90f
-                data.forEach { (cat, value) ->
-                    val sweepAngle = (value / total).toFloat() * 360f * animatedProgress.value
-                    drawArc(
-                        color = getCategoryColor(cat),
-                        startAngle = startAngle,
-                        sweepAngle = sweepAngle,
-                        useCenter = false,
-                        style = Stroke(width = 40f, cap = StrokeCap.Round)
-                    )
-                    startAngle += (value / total).toFloat() * 360f
-                }
-            }
+            PieChart(
+                data = chartData,
+                modifier = Modifier.size(140.dp),
+                innerRadiusRatio = 0.6f // Donut style
+            )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Total", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("₹${total.toInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -79,46 +72,22 @@ fun ExpenseLineChart(
 ) {
     if (data.isEmpty()) return
     
-    val sortedData = data.entries.sortedBy { it.key }
-    val maxVal = sortedData.maxOf { it.value }.coerceAtLeast(1.0)
-    
-    val animatedProgress = remember { Animatable(0f) }
-    LaunchedEffect(data) {
-        animatedProgress.animateTo(1f, animationSpec = tween(1200))
+    val chartData = remember(data) {
+        data.entries.sortedBy { it.key }.map { (date, value) ->
+            ChartDataPoint(
+                label = date.toString(),
+                value = value.toFloat()
+            )
+        }
     }
 
     Box(modifier = modifier.fillMaxWidth().height(180.dp).padding(top = 16.dp)) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            val spacing = width / (sortedData.size - 1).coerceAtLeast(1)
-            
-            // Draw points and lines
-            var lastPoint: Offset? = null
-            sortedData.forEachIndexed { index, entry ->
-                val x = index * spacing
-                val y = height - (entry.value / maxVal).toFloat() * height * animatedProgress.value
-                val currentPoint = Offset(x, y)
-                
-                if (lastPoint != null) {
-                    drawLine(
-                        color = FinanceColors.expense,
-                        start = lastPoint!!,
-                        end = currentPoint,
-                        strokeWidth = 6f,
-                        cap = StrokeCap.Round
-                    )
-                }
-                
-                drawCircle(
-                    color = FinanceColors.expense,
-                    center = currentPoint,
-                    radius = 8f
-                )
-                
-                lastPoint = currentPoint
-            }
-        }
+        SmoothLineChart(
+            data = chartData,
+            lineColor = FinanceColors.expense,
+            modifier = Modifier.fillMaxSize(),
+            showDots = true
+        )
     }
 }
 
