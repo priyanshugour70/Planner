@@ -749,7 +749,7 @@ fun SettingsScreen(
 @Composable
 fun ProfileCard(
     userProfile: com.lssgoo.planner.data.model.UserProfile?,
-    stats: DashboardStats,
+    stats: DashboardStats?,
     onEditClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -853,19 +853,19 @@ fun ProfileCard(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     ProfileStat(
-                        value = "${(stats.overallProgress * 100).toInt()}%",
+                        value = "${((stats?.overallProgress ?: 0f) * 100).toInt()}%",
                         label = "Goal Progress",
                         icon = Icons.Default.TrendingUp
                     )
                     VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp).background(Color.White.copy(alpha = 0.1f)))
                     ProfileStat(
-                        value = "${stats.currentStreak}",
+                        value = "${stats?.currentStreak ?: 0}",
                         label = "Day Streak",
                         icon = Icons.Default.LocalFireDepartment
                     )
                     VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp).background(Color.White.copy(alpha = 0.1f)))
                     ProfileStat(
-                        value = "${stats.completedMilestones}",
+                        value = "${stats?.completedMilestones ?: 0}",
                         label = "Victories",
                         icon = Icons.Default.EmojiEvents
                     )

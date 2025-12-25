@@ -997,6 +997,13 @@ class PlannerViewModel(
         }
     }
     
+    fun updateTransaction(t: Transaction) {
+        viewModelScope.launch {
+            financeRepository.saveTransaction(t)
+            loadFinanceData()
+        }
+    }
+    
     fun deleteTransaction(id: String) {
         viewModelScope.launch {
             financeRepository.deleteTransaction(id)
@@ -1007,12 +1014,21 @@ class PlannerViewModel(
     fun addBudget(b: Budget) {
         viewModelScope.launch {
             financeRepository.saveBudget(b)
+            loadFinanceData()
+        }
+    }
+    
+    fun updateBudget(b: Budget) {
+        viewModelScope.launch {
+            financeRepository.saveBudget(b)
+            loadFinanceData()
         }
     }
     
     fun deleteBudget(id: String) {
         viewModelScope.launch {
             financeRepository.deleteBudget(id)
+            loadFinanceData()
         }
     }
 
