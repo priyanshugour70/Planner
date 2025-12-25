@@ -129,6 +129,7 @@ class PlannerViewModel(
     fun saveUserProfile(profile: UserProfile) {
         viewModelScope.launch {
             userRepository.saveUserProfile(profile)
+            // No refresh needed for profile usually as it's collected once or manually
         }
     }
     
@@ -190,6 +191,9 @@ class PlannerViewModel(
                     val loaded = result.data
                     if (loaded.isEmpty()) {
                         ensureDefaultNotes()
+                        noteRepository.getNotes().collect { inner ->
+                            if (inner is Resource.Success) notes.value = inner.data
+                        }
                     } else {
                         notes.value = loaded
                     }
@@ -205,6 +209,9 @@ class PlannerViewModel(
                      val loaded = result.data
                      if (loaded.isEmpty()) {
                          ensureDefaultTasks()
+                         taskRepository.getTasks().collect { inner ->
+                             if (inner is Resource.Success) tasks.value = inner.data
+                         }
                      } else {
                          tasks.value = loaded
                      }
@@ -241,6 +248,9 @@ class PlannerViewModel(
                     val current = result.data
                     if (current.isEmpty()) {
                         ensureDefaultTransactions()
+                        financeRepository.getTransactions().collect { inner ->
+                            if (inner is Resource.Success) transactions.value = inner.data
+                        }
                     } else {
                         transactions.value = current
                     }
@@ -255,6 +265,9 @@ class PlannerViewModel(
                     val current = result.data
                     if (current.isEmpty()) {
                         ensureDefaultBudgets()
+                        financeRepository.getBudgets().collect { inner ->
+                            if (inner is Resource.Success) budgets.value = inner.data
+                        }
                     } else {
                         budgets.value = current
                     }
@@ -282,17 +295,11 @@ class PlannerViewModel(
             habitRepository.getHabits().collect { result ->
                 if (result is Resource.Success) {
                     val loaded = result.data
-                    // Check defaults
-                    // We can move default check to repo, or keep here.
-                    // If we keep here, we need to be careful not to loop updates.
-                    // Ideally, ensureDefaultHabits checks nicely.
-                    // But ensureDefaultHabits writes to storageManager. We should update it to write to repo.
-                    // For now, let's load what we have.
-                    // We'll fix ensureDefaultHabits separately to use repo.
                     if (loaded.isEmpty()) {
-                         // If empty, define defaults.
-                         ensureDefaultHabits(loaded) // This calls repo add
-                         // No need to set value here, flow will emit again after add.
+                         ensureDefaultHabits(loaded)
+                         habitRepository.getHabits().collect { inner ->
+                             if (inner is Resource.Success) habits.value = inner.data
+                         }
                     } else {
                         habits.value = loaded
                     }
@@ -303,23 +310,41 @@ class PlannerViewModel(
     
     private fun loadJournalData() {
         viewModelScope.launch(Dispatchers.Default) {
-            journalRepository.getEntries().collect { result ->
-                if (result is Resource.Success) {
-                    _journalEntries.value = result.data
-                }
-            }
+             // 1. Load Entries
+             journalRepository.getEntries().collect { result ->
+                 if (result is Resource.Success) {
+                     val loaded = result.data
+                     if (loaded.isEmpty()) {
+                         ensureDefaultJournalEntries()
+                         // After ensuring defaults, fetch again
+                         journalRepository.getEntries().collect { innerResult ->
+                             if (innerResult is Resource.Success) {
+                                 _journalEntries.value = innerResult.data
+                             }
+                         }
+                     } else {
+                         _journalEntries.value = loaded
+                     }
+                 }
+             }
         }
         viewModelScope.launch(Dispatchers.Default) {
-            journalRepository.getPrompts().collect { result ->
-                if (result is Resource.Success) {
-                    val prompts = result.data
-                    if (prompts.isEmpty()) {
-                        initializeDefaultPrompts()
-                    } else {
-                        _journalPrompts.value = prompts
-                    }
-                }
-            }
+             // 2. Load Prompts
+             journalRepository.getPrompts().collect { result ->
+                 if (result is Resource.Success) {
+                     val prompts = result.data
+                     if (prompts.isEmpty()) {
+                         initializeDefaultPrompts()
+                         journalRepository.getPrompts().collect { innerResult ->
+                            if (innerResult is Resource.Success) {
+                                _journalPrompts.value = innerResult.data
+                            }
+                         }
+                     } else {
+                         _journalPrompts.value = prompts
+                     }
+                 }
+             }
         }
     }
     
@@ -330,10 +355,9 @@ class PlannerViewModel(
                     val loaded = result.data
                     if (loaded.isEmpty()) {
                         ensureDefaultGoals()
-                         // Reload after ensuring defaults
-                         // Or just let the flow update if ensureDefaultGoals updates the repo
-                        val updated = storageManager.getGoals() // Fallback to direct check for defaults
-                        goals.value = updated
+                        goalRepository.getGoals().collect { inner ->
+                            if (inner is Resource.Success) goals.value = inner.data
+                        }
                     } else {
                         goals.value = loaded
                     }
@@ -381,6 +405,11 @@ class PlannerViewModel(
         val defaults = InitialData.getNotes()
         defaults.forEach { noteRepository.saveNote(it) }
     }
+    
+    private suspend fun ensureDefaultJournalEntries() {
+        val defaults = InitialData.getJournalEntries()
+        defaults.forEach { journalRepository.saveEntry(it) }
+    }
 
     // JOURNAL LOGIC
     private suspend fun initializeDefaultPrompts() {
@@ -400,7 +429,18 @@ class PlannerViewModel(
         viewModelScope.launch {
             try {
                 journalRepository.saveEntry(entry)
-                // Flow updates automatically
+                loadJournalData() // Refresh
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateJournalEntry(entry: JournalEntry) {
+        viewModelScope.launch {
+            try {
+                journalRepository.saveEntry(entry)
+                loadJournalData() // Refresh
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -411,7 +451,7 @@ class PlannerViewModel(
         viewModelScope.launch {
             try {
                 journalRepository.deleteEntry(entryId)
-                // Flow updates automatically
+                loadJournalData() // Refresh
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -450,18 +490,21 @@ class PlannerViewModel(
     fun addNote(n: Note) {
         viewModelScope.launch {
             noteRepository.saveNote(n)
+            loadNotes()
         }
     }
     
     fun updateNote(n: Note) {
         viewModelScope.launch {
             noteRepository.saveNote(n)
+            loadNotes()
         }
     }
     
     fun deleteNote(id: String) {
         viewModelScope.launch {
             noteRepository.deleteNote(id)
+            loadNotes()
         }
     }
     
@@ -798,6 +841,7 @@ class PlannerViewModel(
     fun toggleTaskCompletion(t: String) {
         viewModelScope.launch {
             taskRepository.toggleTaskCompletion(t)
+            loadTasks()
         }
     }
 
@@ -810,18 +854,21 @@ class PlannerViewModel(
     fun deleteTask(t: String) {
         viewModelScope.launch {
             taskRepository.deleteTask(t)
+            loadTasks()
         }
     }
 
     fun addTask(t: Task) {
         viewModelScope.launch {
             taskRepository.saveTask(t)
+            loadTasks()
         }
     }
 
     fun updateTask(t: Task) {
         viewModelScope.launch {
             taskRepository.saveTask(t)
+            loadTasks()
         }
     }
 
@@ -847,6 +894,7 @@ class PlannerViewModel(
     fun addHabit(h: Habit) {
         viewModelScope.launch {
             habitRepository.saveHabit(h)
+            loadHabits()
         }
     }
     
@@ -913,7 +961,7 @@ class PlannerViewModel(
 
     fun deleteHabit(id: String) {
         viewModelScope.launch {
-            storageManager.deleteHabit(id)
+            habitRepository.deleteHabit(id)
             loadHabits()
         }
     }
@@ -945,12 +993,14 @@ class PlannerViewModel(
     fun addTransaction(t: Transaction) {
         viewModelScope.launch {
             financeRepository.saveTransaction(t)
+            loadFinanceData()
         }
     }
     
     fun deleteTransaction(id: String) {
         viewModelScope.launch {
             financeRepository.deleteTransaction(id)
+            loadFinanceData()
         }
     }
 

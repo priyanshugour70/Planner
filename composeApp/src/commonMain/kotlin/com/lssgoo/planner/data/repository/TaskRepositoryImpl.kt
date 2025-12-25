@@ -32,10 +32,10 @@ class TaskRepositoryImpl(
 
     override suspend fun saveTask(task: Task): Resource<Boolean> {
         return try {
-            if (task.id.isEmpty()) {
-                localDataSource.addTask(task)
-            } else {
+            if (localDataSource.getTasks().any { it.id == task.id }) {
                 localDataSource.updateTask(task)
+            } else {
+                localDataSource.addTask(task)
             }
             Resource.Success(true)
         } catch (e: Exception) {

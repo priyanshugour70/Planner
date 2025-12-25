@@ -55,10 +55,11 @@ class AppStorageRepository(val settings: Settings) {
     fun updateGoal(goal: Goal) {
         val goals = getGoals().toMutableList()
         val index = goals.indexOfFirst { it.id == goal.id }
+        val now = KmpTimeUtils.currentTimeMillis()
         if (index != -1) {
-            goals[index] = goal.copy(updatedAt = KmpTimeUtils.currentTimeMillis())
+            goals[index] = goal.copy(updatedAt = now)
         } else {
-            goals.add(goal)
+            goals.add(goal.copy(createdAt = if (goal.createdAt == 0L) now else goal.createdAt, updatedAt = now))
         }
         saveGoals(goals)
     }
@@ -93,10 +94,13 @@ class AppStorageRepository(val settings: Settings) {
     fun updateNote(note: Note) {
         val notes = getNotes().toMutableList()
         val index = notes.indexOfFirst { it.id == note.id }
+        val now = KmpTimeUtils.currentTimeMillis()
         if (index != -1) {
-            notes[index] = note.copy(updatedAt = KmpTimeUtils.currentTimeMillis())
-            saveNotes(notes)
+            notes[index] = note.copy(updatedAt = now)
+        } else {
+            notes.add(0, note.copy(createdAt = if (note.createdAt == 0L) now else note.createdAt, updatedAt = now))
         }
+        saveNotes(notes)
     }
 
     fun deleteNote(noteId: String) {
@@ -129,10 +133,13 @@ class AppStorageRepository(val settings: Settings) {
     fun updateTask(task: Task) {
         val tasks = getTasks().toMutableList()
         val index = tasks.indexOfFirst { it.id == task.id }
+        val now = KmpTimeUtils.currentTimeMillis()
         if (index != -1) {
-            tasks[index] = task.copy(updatedAt = KmpTimeUtils.currentTimeMillis())
-            saveTasks(tasks)
+            tasks[index] = task.copy(updatedAt = now)
+        } else {
+            tasks.add(0, task.copy(createdAt = if (task.createdAt == 0L) now else task.createdAt, updatedAt = now))
         }
+        saveTasks(tasks)
     }
 
     fun deleteTask(taskId: String) {
@@ -181,8 +188,10 @@ class AppStorageRepository(val settings: Settings) {
         val index = events.indexOfFirst { it.id == event.id }
         if (index != -1) {
             events[index] = event
-            saveEvents(events)
+        } else {
+            events.add(event)
         }
+        saveEvents(events)
     }
 
     fun deleteEvent(eventId: String) {
@@ -279,10 +288,13 @@ class AppStorageRepository(val settings: Settings) {
     fun updateReminder(reminder: Reminder) {
         val reminders = getReminders().toMutableList()
         val index = reminders.indexOfFirst { it.id == reminder.id }
+        val now = KmpTimeUtils.currentTimeMillis()
         if (index != -1) {
-            reminders[index] = reminder.copy(updatedAt = KmpTimeUtils.currentTimeMillis())
-            saveReminders(reminders)
+            reminders[index] = reminder.copy(updatedAt = now)
+        } else {
+            reminders.add(0, reminder.copy(createdAt = if (reminder.createdAt == 0L) now else reminder.createdAt, updatedAt = now))
         }
+        saveReminders(reminders)
     }
 
     fun deleteReminder(reminderId: String) {
@@ -567,11 +579,11 @@ class AppStorageRepository(val settings: Settings) {
         val list = getTransactions().toMutableList()
         val index = list.indexOfFirst { it.id == transaction.id }
         if (index != -1) {
-            val old = list[index]
             list[index] = transaction
-            saveTransactions(list)
-            logFinanceAction("UPDATE", "TRANSACTION", transaction.id, "Updated transaction from ${old.amount} to ${transaction.amount}")
+        } else {
+            list.add(0, transaction)
         }
+        saveTransactions(list)
     }
 
     fun deleteTransaction(id: String) {

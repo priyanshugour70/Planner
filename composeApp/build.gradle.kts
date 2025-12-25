@@ -79,7 +79,7 @@ android {
     val s3Bucket = System.getenv("S3_BUCKET_NAME") ?: s3Properties["S3_BUCKET_NAME"]?.toString() ?: ""
     val s3AccessKey = System.getenv("S3_ACCESS_KEY") ?: s3Properties["S3_ACCESS_KEY"]?.toString() ?: ""
     val s3SecretKey = System.getenv("S3_SECRET_KEY") ?: s3Properties["S3_SECRET_KEY"]?.toString() ?: ""
-    val s3Region = System.getenv("S3_REGION") ?: s3Properties["S3_REGION"]?.toString() ?: "ap-south-1"
+    val s3Region = System.getenv("S3_REGION") ?: s3Properties["S3_REGION"]?.toString() ?: "us-east-1"
 
     defaultConfig {
         applicationId = "com.lssgoo.planner"

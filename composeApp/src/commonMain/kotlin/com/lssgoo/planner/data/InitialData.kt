@@ -74,28 +74,58 @@ object InitialData {
         val now = Clock.System.now().toEpochMilliseconds()
         return listOf(
             Task(
-                title = "Welcome to Planner!",
+                title = "Welcome to Planner! 🚀",
                 description = "Explore the app features and set up your profile.",
                 priority = TaskPriority.HIGH,
                 dueDate = now + 86400000, // Tomorrow
                 isCompleted = false,
-                tags = listOf("General")
+                tags = listOf("General"),
+                createdAt = now
             ),
             Task(
-                title = "Review Weekly Goals",
+                title = "Review Weekly Goals 📊",
                 description = "Check progress on your 2026 goals.",
                 priority = TaskPriority.MEDIUM,
                 dueDate = now + (86400000 * 3),
                 isCompleted = false,
-                tags = listOf("Planning")
+                tags = listOf("Planning"),
+                createdAt = now
             ),
              Task(
-                title = "Grocery Shopping",
+                title = "Grocery Shopping 🍎",
                 description = "Buy standard healthy foods.",
                 priority = TaskPriority.LOW,
                 dueDate = now + (86400000 * 2),
                 isCompleted = false,
-                tags = listOf("Personal")
+                tags = listOf("Personal"),
+                createdAt = now
+            ),
+            Task(
+                title = "Daily Exercise 🏃‍♂️",
+                description = "Go for a 30 minute walk or run.",
+                priority = TaskPriority.HIGH,
+                dueDate = now + 43200000, // 12 hours from now
+                isCompleted = false,
+                tags = listOf("Health"),
+                createdAt = now
+            ),
+            Task(
+                title = "Read for 30 minutes 📖",
+                description = "Pick up a book and read.",
+                priority = TaskPriority.MEDIUM,
+                dueDate = now + 86400000,
+                isCompleted = false,
+                tags = listOf("Personal"),
+                createdAt = now
+            ),
+            Task(
+                title = "Update Finance Logs 💰",
+                description = "Log your expenses for the day.",
+                priority = TaskPriority.URGENT,
+                dueDate = now + 21600000, // 6 hours from now
+                isCompleted = false,
+                tags = listOf("Work"),
+                createdAt = now
             )
         )
     }
@@ -104,7 +134,7 @@ object InitialData {
         val now = Clock.System.now().toEpochMilliseconds()
         return listOf(
             Note(
-                title = "Planner Quick Start",
+                title = "Planner Quick Start 💡",
                 content = "Welcome to your new Planner!\n\nThis app is designed to help you achieve your 2026 Vision.\n\nFeatures:\n- **Goals**: Track your 11 main life goals.\n- **Habits**: Build consistency.\n- **Finance**: Manage your budget.\n- **Tasks**: Get things done.\n\nEnjoy!",
                 color = 0xFFFFF176, // Yellow note
                 createdAt = now,
@@ -112,8 +142,8 @@ object InitialData {
                 category = "General"
             ),
             Note(
-                title = "My Ideas",
-                content = "Jot down your startup ideas here...",
+                title = "2026 Vision Ideas 🎯",
+                content = "Jot down your startup ideas, travel plans, and life dreams here...",
                 color = 0xFF81C784, // Green note
                 createdAt = now,
                 updatedAt = now,
@@ -174,6 +204,42 @@ object InitialData {
                 category = TransactionCategory.TRANSPORT,
                 note = "Uber Ride",
                 date = now - 43200000 
+            )
+        )
+    }
+
+    fun getJournalEntries(): List<JournalEntry> {
+        val now = Clock.System.now().toEpochMilliseconds()
+        return listOf(
+            JournalEntry(
+                title = "A Great Start! ✨",
+                content = "Today I started using the Planner app. I feel very motivated to achieve my 2026 goals.",
+                mood = JournalMood.EXCELLENT,
+                date = now - (86400000 * 2), // 2 days ago
+                gratitude = listOf("Family", "Health", "Opportunities"),
+                achievements = listOf("Started my new habits"),
+                createdAt = now - (86400000 * 2),
+                updatedAt = now - (86400000 * 2)
+            ),
+            JournalEntry(
+                title = "Steady Progress 📈",
+                content = "Completed 80% of my tasks today. Feeling focused.",
+                mood = JournalMood.GOOD,
+                date = now - 86400000, // Yesterday
+                gratitude = listOf("Good coffee", "Productivity"),
+                challenges = listOf("Woke up a bit late"),
+                createdAt = now - 86400000,
+                updatedAt = now - 86400000
+            ),
+            JournalEntry(
+                title = "Reflecting on Goals 🧘‍♂️",
+                content = "Spent some time today reviewing my long-term goals. It's important to stay aligned with my vision.",
+                mood = JournalMood.NEUTRAL,
+                date = now - 3600000, // 1 hour ago
+                gratitude = listOf("Peace of mind"),
+                tags = listOf("Reflection", "Goals"),
+                createdAt = now - 3600000,
+                updatedAt = now - 3600000
             )
         )
     }
