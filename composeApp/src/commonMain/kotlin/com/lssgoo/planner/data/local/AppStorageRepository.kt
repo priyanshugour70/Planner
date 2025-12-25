@@ -204,12 +204,30 @@ class AppStorageRepository(val settings: Settings) {
     }
 
     fun getSettings(): AppSettings {
-        val string = settings.getStringOrNull(KEY_SETTINGS) ?: return AppSettings()
-        return try {
-            json.decodeFromString(string)
-        } catch (e: Exception) {
+        val string = settings.getStringOrNull(KEY_SETTINGS)
+        var appSettings = if (string != null) {
+            try {
+                json.decodeFromString(string)
+            } catch (e: Exception) {
+                AppSettings()
+            }
+        } else {
             AppSettings()
         }
+        
+        // Migration: Check legacy key if false in settings object
+        if (!appSettings.isOnboardingCompleted) {
+             val legacyValue = settings.getBoolean(KEY_ONBOARDING_COMPLETE, false)
+             if (legacyValue) {
+                 appSettings = appSettings.copy(isOnboardingCompleted = true)
+                 // Save migration immediately? Or just return?
+                 // Safer to let the next save handle it, or just return migrated value.
+                 // Let's just return it. The next saveSettings calls will persist it.
+                 // Actually, let's persist it to clear the legacy inconsistency.
+                 saveSettings(appSettings)
+             }
+        }
+        return appSettings
     }
 
     // ======================== USER PROFILE ========================

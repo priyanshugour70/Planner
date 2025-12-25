@@ -84,7 +84,8 @@ data class AppSettings(
     val weeklyReviewDay: Int = 0, // 0 = Sunday
     val userName: String = "",
     val profileImageUrl: String = "",
-    val pinCode: String? = null // Encrypted or plain PIN for App Lock
+    val pinCode: String? = null, // Encrypted or plain PIN for App Lock
+    val isOnboardingCompleted: Boolean = false
 )
 
 /**

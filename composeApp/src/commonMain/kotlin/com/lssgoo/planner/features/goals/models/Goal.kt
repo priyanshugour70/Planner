@@ -19,7 +19,8 @@ data class Goal(
     val milestones: List<Milestone> = emptyList(),
     val targetDate: Long? = null,
     val createdAt: Long = 0L, // Will be set in constructor or elsewhere
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
+    val isDeleted: Boolean = false // For soft delete sync
 )
 
 @Serializable

@@ -38,7 +38,8 @@ data class Note(
     // Update history
     val updateHistory: List<NoteUpdateRecord> = emptyList(),
     val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
-    val updatedAt: Long = KmpTimeUtils.currentTimeMillis()
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 /**

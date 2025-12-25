@@ -30,7 +30,32 @@ import com.lssgoo.planner.features.onboarding.screens.OnboardingScreen
 fun App() {
     // Create the storage repository and ViewModel
     val storageRepository = remember { AppStorageRepository(createSettings()) }
-    val viewModel = remember { PlannerViewModel(storageRepository) }
+    
+    // Repositories
+    val goalRepository = remember { com.lssgoo.planner.data.repository.GoalRepositoryImpl(storageRepository) }
+    val taskRepository = remember { com.lssgoo.planner.data.repository.TaskRepositoryImpl(storageRepository) }
+    val noteRepository = remember { com.lssgoo.planner.data.repository.NoteRepositoryImpl(storageRepository) }
+    val habitRepository = remember { com.lssgoo.planner.data.repository.HabitRepositoryImpl(storageRepository) }
+    val journalRepository = remember { com.lssgoo.planner.data.repository.JournalRepositoryImpl(storageRepository) }
+    val financeRepository = remember { com.lssgoo.planner.data.repository.FinanceRepositoryImpl(storageRepository) }
+    val reminderRepository = remember { com.lssgoo.planner.data.repository.ReminderRepositoryImpl(storageRepository) }
+    val settingsRepository = remember { com.lssgoo.planner.data.repository.SettingsRepositoryImpl(storageRepository) }
+    val userRepository = remember { com.lssgoo.planner.data.repository.UserRepositoryImpl(storageRepository) }
+
+    val viewModel = remember { 
+        PlannerViewModel(
+            storageManager = storageRepository,
+            goalRepository = goalRepository,
+            taskRepository = taskRepository,
+            noteRepository = noteRepository,
+            habitRepository = habitRepository,
+            journalRepository = journalRepository,
+            financeRepository = financeRepository,
+            reminderRepository = reminderRepository,
+            settingsRepository = settingsRepository,
+            userRepository = userRepository
+        ) 
+    }
     
     val settings by viewModel.settings.collectAsState()
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState()

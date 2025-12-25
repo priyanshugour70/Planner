@@ -1,9 +1,9 @@
 import SwiftUI
-#if canImport(composeApp)
-import composeApp
+#if canImport(ComposeApp)
+import ComposeApp
 #endif
 
-#if canImport(composeApp)
+#if canImport(ComposeApp)
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         MainViewControllerKt.MainViewController()

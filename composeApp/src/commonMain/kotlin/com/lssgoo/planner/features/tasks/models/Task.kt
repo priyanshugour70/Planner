@@ -29,7 +29,8 @@ data class Task(
     val updateHistory: List<TaskUpdateRecord> = emptyList(),
     val completedAt: Long? = null,
     val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
-    val updatedAt: Long = KmpTimeUtils.currentTimeMillis()
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 /**
@@ -118,7 +119,9 @@ data class CalendarEvent(
     val reminderEnabled: Boolean = true,
     val notificationId: Int = (KmpTimeUtils.currentTimeMillis() % Int.MAX_VALUE).toInt(),
     val updateHistory: List<EventUpdateRecord> = emptyList(),
-    val createdAt: Long = KmpTimeUtils.currentTimeMillis()
+    val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 /**

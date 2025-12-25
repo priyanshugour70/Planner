@@ -46,7 +46,9 @@ data class Transaction(
     val receiptUri: String? = null, // For receipts (Option 5)
     val isRecurring: Boolean = false, // For recurring transactions (Option 4)
     val recurringPeriod: BudgetPeriod? = null,
-    val createdAt: Long = KmpTimeUtils.currentTimeMillis()
+    val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 @Serializable
@@ -58,7 +60,9 @@ data class Budget(
     val period: BudgetPeriod = BudgetPeriod.MONTHLY,
     val startDate: Long = KmpTimeUtils.currentTimeMillis(),
     val endDate: Long? = null,
-    val notifiedAt: Long? = null // For budget alerts (Option 6)
+    val notifiedAt: Long? = null, // For budget alerts (Option 6)
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 @Serializable

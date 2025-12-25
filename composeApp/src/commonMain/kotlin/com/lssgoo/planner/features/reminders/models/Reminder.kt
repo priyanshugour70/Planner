@@ -43,7 +43,8 @@ data class Reminder(
     val notificationId: Int = (KmpTimeUtils.currentTimeMillis() % Int.MAX_VALUE).toInt(),
     val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
     val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
-    val updateHistory: List<UpdateRecord> = emptyList()
+    val updateHistory: List<UpdateRecord> = emptyList(),
+    val isDeleted: Boolean = false
 )
 
 /**

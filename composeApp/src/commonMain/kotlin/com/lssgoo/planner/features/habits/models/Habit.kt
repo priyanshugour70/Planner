@@ -34,7 +34,9 @@ data class Habit(
     val timeOfDay: HabitTimeOfDay = HabitTimeOfDay.ANY_TIME,
     val reminderTime: String? = null,
     val isActive: Boolean = true,
-    val createdAt: Long = KmpTimeUtils.currentTimeMillis()
+    val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 // NOTE: HabitEntry here conflicts with Task.kt's HabitEntry?
@@ -59,7 +61,10 @@ data class HabitEntry(
     val value: Float = 0f, // For quant/timer (current progress)
     val isCompleted: Boolean = false,
     val mood: HabitMood? = null,
-    val notes: String = ""
+    val notes: String = "",
+    val createdAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val updatedAt: Long = KmpTimeUtils.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
 
 @Serializable

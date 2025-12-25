@@ -22,7 +22,8 @@ data class JournalEntry(
     val challenges: List<String> = emptyList(),
     val reflection: String = "",
     val createdAt: Long = 0L,
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
+    val isDeleted: Boolean = false
 )
 
 @Serializable

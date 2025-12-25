@@ -144,7 +144,7 @@ fun FinanceScreen(
                     0 -> FinanceDashboard(stats)
                     1 -> FinanceAnalysis(stats)
                     2 -> TransactionList(transactions, onDelete = { viewModel.deleteTransaction(it) })
-                    3 -> BudgetList(budgets, onRemove = { viewModel.removeBudget(it) })
+                    3 -> BudgetList(budgets, onRemove = { viewModel.deleteBudget(it) })
                     4 -> DebtList(
                         transactions.filter { (it.type == TransactionType.BORROWED || it.type == TransactionType.LENT) && !it.isSettled },
                         onSettle = { viewModel.settleDebt(it) }
