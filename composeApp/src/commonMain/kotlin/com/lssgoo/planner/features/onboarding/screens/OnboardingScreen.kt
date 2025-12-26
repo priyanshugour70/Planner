@@ -1,458 +1,423 @@
 package com.lssgoo.planner.features.onboarding.screens
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.pager.*
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lssgoo.planner.data.model.ThemeMode
-import com.lssgoo.planner.data.model.UserProfile
-import com.lssgoo.planner.ui.components.AppIcons
+import com.lssgoo.planner.data.model.Gender
+import com.lssgoo.planner.features.settings.models.ThemeMode
+import com.lssgoo.planner.features.settings.models.UserProfile
+import com.lssgoo.planner.features.onboarding.steps.*
 import com.lssgoo.planner.ui.viewmodel.PlannerViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.draw.shadow
-import androidx.compose.animation.core.*
-import androidx.compose.ui.geometry.Offset
+import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(viewModel: PlannerViewModel) {
-    var step by remember { mutableStateOf(OnboardingStep.WELCOME) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
     
     // User data state
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    val themeMode by viewModel.settings.collectAsState()
+    var dateOfBirth by remember { mutableStateOf<Long?>(null) }
+    var selectedGender by remember { mutableStateOf(Gender.PREFER_NOT_TO_SAY) }
+    var occupation by remember { mutableStateOf("") }
+    val initialTheme = viewModel.settings.collectAsState().value.themeMode
+    var selectedTheme by remember { mutableStateOf(initialTheme) }
     
+    val pagerState = rememberPagerState(pageCount = { 6 })
+    
+    // Validation
+    val isNameValid = firstName.isNotBlank()
+    val isEmailValid = email.isNotBlank() && email.contains("@") && email.contains(".")
+    val canGoForward = when(pagerState.currentPage) {
+        1 -> isNameValid
+        2 -> isEmailValid
+        else -> true
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Dynamic Animated Background
+        // Shared Animated Background (from previous version as requested or simplified)
         AnimatedBackground()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
                 .windowInsetsPadding(WindowInsets.systemBars),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Skip button at the top (only show if not on FINISH step)
-            if (step != OnboardingStep.FINISH) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.setOnboardingComplete(true)
-                        }
-                    ) {
-                        Text(
-                            text = "Skip",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            } else {
-                Spacer(modifier = Modifier.height(48.dp))
-            }
-            
-            // Step Indicator
-            OnboardingProgress(currentStep = step)
-            
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Main Content Area
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                AnimatedContent(
-                    targetState = step,
-                    transitionSpec = {
-                        (fadeIn() + scaleIn(initialScale = 0.9f)).togetherWith(fadeOut() + scaleOut(targetScale = 1.1f))
-                    }
-                ) { currentStep ->
-                    when (currentStep) {
-                        OnboardingStep.WELCOME -> WelcomeView()
-                        OnboardingStep.PROFILE -> ProfileView(
-                            firstName = firstName,
-                            lastName = lastName,
-                            email = email,
-                            onFirstNameChange = { firstName = it },
-                            onLastNameChange = { lastName = it },
-                            onEmailChange = { email = it }
-                        )
-                        OnboardingStep.THEME -> ThemeView(
-                            currentMode = themeMode.themeMode,
-                            onThemeSelect = { 
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.updateSettings(viewModel.settings.value.copy(themeMode = it)) 
-                            }
-                        )
-                        OnboardingStep.FINISH -> FinishView(firstName = firstName.ifBlank { "there" })
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Navigation Button
-            Button(
-                onClick = {
+            // Top Bar: Skip button & Progress
+            OnboardingTopBar(
+                pagerState = pagerState,
+                onSkip = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    when (step) {
-                        OnboardingStep.WELCOME -> step = OnboardingStep.PROFILE
-                        OnboardingStep.PROFILE -> if (firstName.isNotBlank()) step = OnboardingStep.THEME
-                        OnboardingStep.THEME -> step = OnboardingStep.FINISH
-                        OnboardingStep.FINISH -> {
-                            scope.launch {
-                                if (firstName.isNotBlank()) {
-                                    viewModel.saveUserProfile(
-                                        UserProfile(
-                                            firstName = firstName,
-                                            lastName = lastName,
-                                            email = email,
-                                            isOnboardingComplete = true
-                                        )
-                                    )
-                                }
-                                viewModel.setOnboardingComplete(true)
+                    // Skip logic: Jump to finish or home? User said "discourage it".
+                    // For now, skip just goes to the last page if allowed.
+                    // Skip logic: Jump to last page
+                    if (pagerState.currentPage != 1 && pagerState.currentPage != 2) {
+                        scope.launch { pagerState.animateScrollToPage(5) }
+                    }
+                }
+            )
+            
+            // Steps with 3D Cube Rotation Effect
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f),
+                userScrollEnabled = false,
+                contentPadding = PaddingValues(horizontal = 32.dp),
+                pageSpacing = 0.dp
+            ) { pageIndex ->
+                val pageOffset = (
+                    (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            // 3D Cube transformation
+                            val lerpOffset = pageOffset.coerceIn(-1f, 1f)
+                            cameraDistance = 12f * density
+                            
+                            // Rotation
+                            rotationY = lerpOffset * 90f
+                            
+                            // Pivot point for cube effect
+                            transformOrigin = TransformOrigin(
+                                pivotFractionX = if (lerpOffset < 0f) 0f else 1f,
+                                pivotFractionY = 0.5f
+                            )
+                            
+                            // Scale and Alpha
+                            val scale = 0.85f + (1f - 0.85f) * (1f - pageOffset.absoluteValue.coerceIn(0f, 1f))
+                            scaleX = scale
+                            scaleY = scale
+                            alpha = 1f - pageOffset.absoluteValue.coerceIn(0f, 0.7f)
+                        }
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
+                        shape = RoundedCornerShape(32.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, 
+                            Brush.linearGradient(
+                                listOf(Color.White.copy(alpha = 0.4f), Color.Transparent)
+                            )
+                        ),
+                        tonalElevation = 4.dp,
+                        shadowElevation = 8.dp
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            when (pageIndex) {
+                                0 -> OnboardingIntroStep()
+                                1 -> OnboardingNameStep(
+                                    firstName = firstName,
+                                    lastName = lastName,
+                                    onFirstNameChange = { firstName = it },
+                                    onLastNameChange = { lastName = it },
+                                    focusManager = focusManager
+                                )
+                                2 -> OnboardingEmailStep(
+                                    email = email,
+                                    onEmailChange = { email = it },
+                                    focusManager = focusManager
+                                )
+                                3 -> OnboardingThemeStep(
+                                    selectedTheme = selectedTheme,
+                                    onThemeSelected = { 
+                                        selectedTheme = it 
+                                        viewModel.updateSettings(viewModel.settings.value.copy(themeMode = it))
+                                    }
+                                )
+                                4 -> OnboardingDetailsStep(
+                                    dateOfBirth = dateOfBirth,
+                                    selectedGender = selectedGender,
+                                    occupation = occupation,
+                                    onDateSelected = { dateOfBirth = it },
+                                    onGenderSelected = { selectedGender = it },
+                                    onOccupationChange = { occupation = it },
+                                    focusManager = focusManager
+                                )
+                                5 -> OnboardingWelcomeStep(firstName = firstName)
                             }
+                        }
+                    }
+                }
+            }
+
+            // Bottom Navigation - Swipe Inspired
+            OnboardingNavigationFooter(
+                pagerState = pagerState,
+                canGoForward = canGoForward,
+                isLastPage = pagerState.currentPage == 5,
+                onNext = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (pagerState.currentPage < 5) {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    } else {
+                        scope.launch {
+                            viewModel.saveUserProfile(
+                                UserProfile(
+                                    firstName = firstName,
+                                    lastName = lastName,
+                                    email = email,
+                                    dateOfBirth = dateOfBirth,
+                                    gender = selectedGender,
+                                    occupation = occupation,
+                                    isOnboardingComplete = true
+                                )
+                            )
+                            viewModel.updateSettings(
+                                viewModel.settings.value.copy(
+                                    themeMode = selectedTheme,
+                                    isOnboardingCompleted = true
+                                )
+                            )
+                            viewModel.setOnboardingComplete(true)
+                            delay(800)
+                            viewModel.syncToCloud()
+                            viewModel.syncFromCloud()
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .shadow(12.dp, RoundedCornerShape(20.dp)),
-                shape = RoundedCornerShape(20.dp),
-                enabled = if (step == OnboardingStep.PROFILE) firstName.isNotBlank() else true,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(
-                    text = if (step == OnboardingStep.FINISH) "Let's Begin" else "Continue",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = if (step == OnboardingStep.FINISH) Icons.Default.RocketLaunch else Icons.Default.ArrowForward,
-                    contentDescription = null
+                onBack = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (pagerState.currentPage > 0) {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun OnboardingTopBar(
+    pagerState: PagerState,
+    onSkip: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Progress Dots
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(pagerState.pageCount) { index ->
+                val isActive = index == pagerState.currentPage
+                val width by animateDpAsState(if (isActive) 16.dp else 6.dp)
+                val alpha by animateFloatAsState(if (isActive) 1f else 0.3f)
+                
+                Box(
+                    modifier = Modifier
+                        .width(width)
+                        .height(6.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+        }
+        
+        // Skip Button - Only show if allowed
+        val canSkip = pagerState.currentPage != 1 && pagerState.currentPage != 2 && pagerState.currentPage != 5
+        if (canSkip) {
+            TextButton(
+                onClick = onSkip,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+            ) {
+                Text("Skip", fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Spacer(modifier = Modifier.width(48.dp))
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WelcomeView() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), CircleShape)
-                .padding(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.AutoGraph,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(40.dp))
-        
-        Text(
-            text = "Master Your 2026",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "Organize your goals, track your habits, and build the life you've always dreamed of.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProfileView(
-    firstName: String,
-    lastName: String,
-    email: String,
-    onFirstNameChange: (String) -> Unit,
-    onLastNameChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit
+fun OnboardingNavigationFooter(
+    pagerState: PagerState,
+    canGoForward: Boolean,
+    isLastPage: Boolean,
+    onNext: () -> Unit,
+    onBack: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Tell us about yourself",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        OutlinedTextField(
-            value = firstName,
-            onValueChange = onFirstNameChange,
-            label = { Text("First Name") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.Person, null) },
-            singleLine = true
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = lastName,
-            onValueChange = onLastNameChange,
-            label = { Text("Last Name") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.Badge, null) },
-            singleLine = true
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = { Text("Email Address") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.Email, null) },
-            singleLine = true
-        )
-    }
-}
-
-@Composable
-fun ThemeView(
-    currentMode: ThemeMode,
-    onThemeSelect: (ThemeMode) -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Choose your style",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            ThemeCard(
-                mode = ThemeMode.LIGHT,
-                isSelected = currentMode == ThemeMode.LIGHT,
-                icon = Icons.Default.LightMode,
-                label = "Light",
-                modifier = Modifier.weight(1f),
-                onClick = { onThemeSelect(ThemeMode.LIGHT) }
-            )
-            ThemeCard(
-                mode = ThemeMode.DARK,
-                isSelected = currentMode == ThemeMode.DARK,
-                icon = Icons.Default.DarkMode,
-                label = "Dark",
-                modifier = Modifier.weight(1f),
-                onClick = { onThemeSelect(ThemeMode.DARK) }
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        ThemeCard(
-            mode = ThemeMode.SYSTEM,
-            isSelected = currentMode == ThemeMode.SYSTEM,
-            icon = Icons.Default.SettingsSuggest,
-            label = "System Default",
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { onThemeSelect(ThemeMode.SYSTEM) }
-        )
-    }
-}
-
-@Composable
-fun ThemeCard(
-    mode: ThemeMode,
-    isSelected: Boolean,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = modifier.height(120.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun FinishView(firstName: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f), CircleShape)
-                .padding(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Celebration,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                tint = MaterialTheme.colorScheme.tertiary
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(40.dp))
-        
-        Text(
-            text = "Welcome aboard, $firstName!",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "Your personalized planner is ready. Let's make 2026 your best year yet.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-    }
-}
-
-@Composable
-fun OnboardingProgress(currentStep: OnboardingStep) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, bottom = 40.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        OnboardingStep.entries.forEach { step ->
-            val isActive = step.ordinal <= currentStep.ordinal
-            Box(
+        // Back Button
+        if (pagerState.currentPage > 0) {
+            IconButton(
+                onClick = onBack,
                 modifier = Modifier
-                    .weight(1f)
-                    .height(6.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(
-                        if (isActive) MaterialTheme.colorScheme.primary 
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    )
-            )
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.size(56.dp))
         }
+
+        // Center Action - Get Started or Next
+        if (isLastPage) {
+            Button(
+                onClick = onNext,
+                modifier = Modifier
+                    .height(56.dp)
+                    .padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Get Started", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.Default.ChevronRight, null)
+            }
+        } else {
+            // "Right swipe" inspired button
+            Surface(
+                onClick = onNext,
+                enabled = canGoForward,
+                modifier = Modifier
+                    .size(72.dp)
+                    .shadow(if (canGoForward) 12.dp else 0.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary),
+                shape = CircleShape,
+                color = if (canGoForward) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Next",
+                        tint = if (canGoForward) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+        }
+
+        // Symmetry spacer
+        Spacer(modifier = Modifier.size(56.dp))
     }
 }
 
 @Composable
 fun AnimatedBackground() {
-    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition()
-    val offsetX by infiniteTransition.animateFloat(
+    val infiniteTransition = rememberInfiniteTransition(label = "background")
+    
+    val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1000f,
+        targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(40000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "angle"
     )
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val color1 = Color(0xFF6366F1).copy(alpha = 0.05f)
-        val color2 = Color(0xFFA855F7).copy(alpha = 0.05f)
-        val color3 = Color(0xFFEC4899).copy(alpha = 0.05f)
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    Box(modifier = Modifier.fillMaxSize().blur(60.dp)) {
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize().graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+            rotationZ = angle
+        }) {
+            val colors = listOf(
+                Color(0xFF6366F1), // Indigo
+                Color(0xFFA855F7), // Purple
+                Color(0xFFEC4899), // Pink
+                Color(0xFF3B82F6), // Blue
+                Color(0xFF10B981)  // Emerald
+            )
+            
+            // Draw multiple overlapping vibrant circles
+            drawCircle(
+                brush = Brush.radialGradient(listOf(colors[0].copy(alpha = 0.4f), Color.Transparent)),
+                radius = size.width * 0.8f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 0.2f)
+            )
+            
+            drawCircle(
+                brush = Brush.radialGradient(listOf(colors[1].copy(alpha = 0.4f), Color.Transparent)),
+                radius = size.width * 0.9f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.8f, size.height * 0.3f)
+            )
+            
+            drawCircle(
+                brush = Brush.radialGradient(listOf(colors[2].copy(alpha = 0.4f), Color.Transparent)),
+                radius = size.width * 0.7f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.5f, size.height * 0.7f)
+            )
+            
+            drawCircle(
+                brush = Brush.radialGradient(listOf(colors[3].copy(alpha = 0.4f), Color.Transparent)),
+                radius = size.width * 0.6f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.1f, size.height * 0.8f)
+            )
+
+            drawCircle(
+                brush = Brush.radialGradient(listOf(colors[4].copy(alpha = 0.4f), Color.Transparent)),
+                radius = size.width * 0.5f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.9f, size.height * 0.9f)
+            )
+        }
         
-        drawCircle(
-            brush = Brush.radialGradient(listOf(color1, Color.Transparent)),
-            radius = 600f,
-            center = Offset(100f + (offsetX / 10f), 200f)
-        )
-        
-        drawCircle(
-            brush = Brush.radialGradient(listOf(color2, Color.Transparent)),
-            radius = 800f,
-            center = Offset(size.width - (offsetX / 5f), size.height / 2f)
-        )
-        
-        drawCircle(
-            brush = Brush.radialGradient(listOf(color3, Color.Transparent)),
-            radius = 700f,
-            center = Offset(offsetX / 8f, size.height - 100f)
+        // Add a subtle grain/noise effect if we had a drawable, but with canvas we can draw points
+        // For performance, let's keep it clean but add a very light overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.15f))
         )
     }
-}
-
-enum class OnboardingStep {
-    WELCOME, PROFILE, THEME, FINISH
 }

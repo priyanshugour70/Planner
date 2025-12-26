@@ -113,6 +113,7 @@ object AppIcons {
     val Category = Icons.Default.Category
     val Handshake = Icons.Default.Handshake
     val Rocket = Icons.Default.Rocket
+    val Star = Icons.Default.Star
     val Person = Icons.Default.Person
     val Email = Icons.Default.Email
     val Palette = Icons.Default.Palette
